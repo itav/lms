@@ -12,6 +12,7 @@ contrib/LMS2Nagios-php/generated/*
 lib/teryt/*
 .idea
 
+
 # Temporary files
 *~
 *.swp

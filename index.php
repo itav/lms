@@ -25,7 +25,8 @@
  */
 
 // REPLACE THIS WITH PATH TO YOUR CONFIG FILE
-$CONFIG_FILE = '/home/inetzone/ftp/etc/lms/lms.ini';
+
+$CONFIG_FILE = 'lms.ini';
 
 // PLEASE DO NOT MODIFY ANYTHING BELOW THIS LINE UNLESS YOU KNOW
 // *EXACTLY* WHAT ARE YOU DOING!!!
@@ -59,6 +60,7 @@ $CONFIG['directories']['smarty_templates_dir'] = (!isset($CONFIG['directories'][
 $CONFIG['directories']['plugin_dir'] = (!isset($CONFIG['directories']['plugin_dir']) ? $CONFIG['directories']['sys_dir'] . DIRECTORY_SEPARATOR . 'plugins' : $CONFIG['directories']['plugin_dir']);
 $CONFIG['directories']['plugins_dir'] = $CONFIG['directories']['plugin_dir'];
 $CONFIG['directories']['vendor_dir'] = (!isset($CONFIG['directories']['vendor_dir']) ? $CONFIG['directories']['sys_dir'] . DIRECTORY_SEPARATOR . 'vendor' : $CONFIG['directories']['vendor_dir']);
+$CONFIG['directories']['userpanel_dir'] = $CONFIG['directories']['sys_dir'] . DIRECTORY_SEPARATOR . 'userpanel';
 
 define('SYS_DIR', $CONFIG['directories']['sys_dir']);
 define('LIB_DIR', $CONFIG['directories']['lib_dir']);
