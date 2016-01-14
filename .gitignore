@@ -1,7 +1,6 @@
 assets/*
 templates_c/*
 userpanel/templates_c/*
-lib/Smarty/*
 nbproject/private
 lms.ini
 backups/*
@@ -11,8 +10,8 @@ cache/*
 contrib/LMS2Nagios-php/generated/*
 lib/teryt/*
 .idea
-
-
+index.php
+composer.lock
 # Temporary files
 *~
 *.swp

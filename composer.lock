@@ -4,7 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b7fc8f28d750a91b425504bec98dc11c",
+    "hash": "0515148a62e6ed26ccc5c03318cb0078",
+    "content-hash": "bef29332d79a32b107fcdc0323a409a5",
     "packages": [
         {
             "name": "phine/exception",
