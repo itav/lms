@@ -34,7 +34,7 @@ $CONFIG_FILE = '/home/inetzone/ftp/etc/lms/lms.ini';
 
 define('START_TIME', microtime(true));
 define('LMS-UI', true);
-ini_set('error_reporting', E_ALL&~E_NOTICE);
+ini_set('error_reporting',0);
 
 // find alternative config files:
 if (is_readable('lms.ini'))
