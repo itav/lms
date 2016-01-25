@@ -4,7 +4,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2015 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -56,7 +56,7 @@ foreach ($short_to_longs as $short => $long)
 if (array_key_exists('version', $options)) {
 	print <<<EOF
 lms-payments.php
-(C) 2001-2015 LMS Developers
+(C) 2001-2016 LMS Developers
 
 EOF;
 	exit(0);
@@ -65,7 +65,7 @@ EOF;
 if (array_key_exists('help', $options)) {
 	print <<<EOF
 lms-payments.php
-(C) 2001-2015 LMS Developers
+(C) 2001-2016 LMS Developers
 
 -C, --config-file=/etc/lms/lms.ini      alternate config file (default: /etc/lms/lms.ini);
 -h, --help                      print this help and exit;
@@ -81,7 +81,7 @@ $quiet = array_key_exists('quiet', $options);
 if (!$quiet) {
 	print <<<EOF
 lms-payments.php
-(C) 2001-2015 LMS Developers
+(C) 2001-2016 LMS Developers
 
 EOF;
 }
@@ -110,9 +110,6 @@ define('LIB_DIR', $CONFIG['directories']['lib_dir']);
 
 // Load autoloader
 require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'autoloader.php');
-
-// Do some checks and load config defaults
-require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'config.php');
 
 // Init database
 
@@ -306,13 +303,14 @@ function get_period($period) {
 $query = "SELECT n.id, n.period, COALESCE(a.divisionid, 0) AS divid, isdefault 
 		FROM numberplans n 
 		LEFT JOIN numberplanassignments a ON (a.planid = n.id) 
-		WHERE doctype = 1";
-$results = $DB->GetAll($query);
-foreach ($results as $row) {
-	if ($row['isdefault'])
-		$plans[$row['divid']] = $row['id'];
-	$periods[$row['id']] = ($row['period'] ? $row['period'] : YEAR);
-}
+		WHERE doctype = ?";
+$results = $DB->GetAll($query, array(DOC_INVOICE));
+if (!empty($results))
+	foreach ($results as $row) {
+		if ($row['isdefault'])
+			$plans[$row['divid']] = $row['id'];
+		$periods[$row['id']] = ($row['period'] ? $row['period'] : YEARLY);
+	}
 
 // prepare customergroups in sql query
 $customergroups = " AND EXISTS (SELECT 1 FROM customergroups g, customerassignments ca 
