@@ -5,8 +5,18 @@
     "license": "GPL-2.0",
     "require": {
         "phine/observer": "2.0",
+<<<<<<< HEAD
         "phine/exception": "1.0",
 	"phpmailer/phpmailer": "^5.2"
+=======
+<<<<<<< HEAD
+        "phine/exception": "1.0"
+
+=======
+        "phine/exception": "1.0",
+	"phpmailer/phpmailer": "^5.2"
+>>>>>>> master
+>>>>>>> 9a55fc9c83b9f999f096ab76d39c7c242986e6f2
     },
     "require_dev": {
         "phpunit/phpunit": "5.1.*"

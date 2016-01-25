@@ -4,10 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "hash": "e20b99df59562a34a00fec8209f63c51",
     "content-hash": "9f667d9637385cfef9028a307b8a7ae1",
     "hash": "0515148a62e6ed26ccc5c03318cb0078",
     "content-hash": "bef29332d79a32b107fcdc0323a409a5",
+=======
+<<<<<<< HEAD
+    "hash": "0515148a62e6ed26ccc5c03318cb0078",
+    "content-hash": "bef29332d79a32b107fcdc0323a409a5",
+=======
+    "hash": "e20b99df59562a34a00fec8209f63c51",
+    "content-hash": "9f667d9637385cfef9028a307b8a7ae1",
+>>>>>>> master
+>>>>>>> 9a55fc9c83b9f999f096ab76d39c7c242986e6f2
     "packages": [
         {
             "name": "phine/exception",
