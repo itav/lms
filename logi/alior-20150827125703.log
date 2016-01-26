@@ -1,0 +1,16 @@
+Wczytuje liste przetworzonych wyciagow... 18 wczytano
+Sprawdzam liste plikow w folderze... 20 plikow
+Sprawdzam, ktore pliki nie zostaly przetworzone... 2 plikow
+
+Przetwarzanie pliku 70000120201508040022.7z, katalog /tmp/rpt-4ba1a4daed9315e5... Katalog stworzony... Plik rozpakowany...
+   ID: 10 Data: 20150804 Kwota: 49.00 Opis: Krzysztof Ziarkoul. Ks. Skorupki 2141-253 CzeladOpata za internet 60 [70000120201508040022.rpt]
+
+Razem zaksiegowano 49.00zl z pliku 70000120201508040022.rpt.  Usunieto katalog tymczasowy /tmp/rpt-4ba1a4daed9315e5...
+
+Przetwarzanie pliku 70000120201507150018.7z, katalog /tmp/rpt-58455e24fb969133... Katalog stworzony... Plik rozpakowany...
+   ID: 13 Data: 20150715 Kwota: 49.00 Opis: Faktura nr.36/LMS/2015 51 [70000120201507150018.rpt]
+
+Razem zaksiegowano 49.00zl z pliku 70000120201507150018.rpt.  Usunieto katalog tymczasowy /tmp/rpt-58455e24fb969133...
+
+Dodaje 2 wpisow SQL do bazy
+Zapisuje informacje o przetworzonych plikach...

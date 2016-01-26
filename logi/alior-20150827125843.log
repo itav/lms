@@ -1,0 +1,11 @@
+Wczytuje liste przetworzonych wyciagow... 20 wczytano
+Sprawdzam liste plikow w folderze... 21 plikow
+Sprawdzam, ktore pliki nie zostaly przetworzone... 1 plikow
+
+Przetwarzanie pliku 70000120201508120024.7z, katalog /tmp/rpt-decf10d2b92beb0... Katalog stworzony... Plik rozpakowany...
+   ID: 14 Data: 20150812 Kwota: 205.00 Opis: PATRYK CELUCH PROSTA 53 41-253 CZELAD 64 [70000120201508120024.rpt]
+
+Razem zaksiegowano 205.00zl z pliku 70000120201508120024.rpt.  Usunieto katalog tymczasowy /tmp/rpt-decf10d2b92beb0...
+
+Dodaje 1 wpisow SQL do bazy
+Zapisuje informacje o przetworzonych plikach...

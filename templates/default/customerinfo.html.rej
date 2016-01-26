@@ -1,0 +1,16 @@
+--- templates/default/customerinfo.html	2014-05-15 10:50:25.000000000 +0200
++++ templates/default/customerinfo.html	2014-07-17 14:28:43.657581000 +0200
+@@ -13,6 +13,13 @@
+ 			{include file="customernodesbox.html"}
+ 		</TD>
+ 	</TR>
++        {if $_phpui_gpon}
++        <TR>
++                <TD style="width: 100%;">
++                        {include file="gpononu.inc.html"}
++                </TD>
++        </TR>
++        {/if}
+ 	{if check_conf('phpui.logging') && (check_conf('privileges.superuser') || check_conf('privileges.transaction_logs'))}
+ 	<TR>
+ 		<TD WIDTH="100%">

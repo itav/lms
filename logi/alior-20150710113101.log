@@ -1,0 +1,31 @@
+Wczytuje liste przetworzonych wyciagow... 8 wczytano
+Sprawdzam liste plikow w folderze... 12 plikow
+Sprawdzam, ktore pliki nie zostaly przetworzone... 4 plikow
+
+Przetwarzanie pliku 70000120201506150008.7z, katalog /tmp/rpt-5c2d47a0d3e945d0... Katalog stworzony... Plik rozpakowany...
+   ID: 7 Data: 20150615 Kwota: 49.00 Opis: 6/LMS/2015 RAFA SOBIERAJSKI 24 [70000120201506150008.rpt]
+   ID: 7 Data: 20150615 Kwota: 248.00 Opis: 5 /LMS/ 2015 RAFA SOBIERAJSKI 25 [70000120201506150008.rpt]
+
+Razem zaksiegowano 297.00zl z pliku 70000120201506150008.rpt.  Usunieto katalog tymczasowy /tmp/rpt-5c2d47a0d3e945d0...
+
+Przetwarzanie pliku 70000120201507060014.7z, katalog /tmp/rpt-5a48ede8242805d1... Katalog stworzony... Plik rozpakowany...
+   ID: 2 Data: 20150706 Kwota: 242.90 Opis: ZAPATA ZA FAKTUR NR 2/LMS/2015 39 [70000120201507060014.rpt]
+   ID: 2 Data: 20150706 Kwota: 69.90 Opis: ZAPATA ZA FAKTUR NR 24/LMS/2015 40 [70000120201507060014.rpt]
+   ID: 7 Data: 20150706 Kwota: 49.00 Opis: 17/LMS/2015 RAFA SOBIERAJSKI 41 [70000120201507060014.rpt]
+
+Razem zaksiegowano 361.80zl z pliku 70000120201507060014.rpt.  Usunieto katalog tymczasowy /tmp/rpt-5a48ede8242805d1...
+
+Przetwarzanie pliku 70000120201506090004.7z, katalog /tmp/rpt-8ea215853fc23d9e... Katalog stworzony... Plik rozpakowany...
+   ID: 4 Data: 20150609 Kwota: 268.00 Opis: Nowak KamilProsta 51  41-253 CzeladFA: 3/LMS/2015 13 [70000120201506090004.rpt]
+   ID: 12 Data: 20150609 Kwota: 158.00 Opis: ZAPATA ZA FAKTUR NUMER : 11/LMS/2015 14 [70000120201506090004.rpt]
+   ID: 11 Data: 20150609 Kwota: 158.00 Opis: opata za internetKrasickiego 12ID klienta 0011PIN:306353 15 [70000120201506090004.rpt]
+
+Razem zaksiegowano 584.00zl z pliku 70000120201506090004.rpt.  Usunieto katalog tymczasowy /tmp/rpt-8ea215853fc23d9e...
+
+Przetwarzanie pliku 70000120201506030002.7z, katalog /tmp/rpt-b99bce028cc96e8a... Katalog stworzony... Plik rozpakowany...
+   ID: 3 Data: 20150603 Kwota: 49.00 Opis: ZAPATA ZA FAKTUR;20/LMS/2015.IDKLIENTA:0003 9 [70000120201506030002.rpt]
+
+Razem zaksiegowano 49.00zl z pliku 70000120201506030002.rpt.  Usunieto katalog tymczasowy /tmp/rpt-b99bce028cc96e8a...
+
+Dodaje 9 wpisow SQL do bazy
+Zapisuje informacje o przetworzonych plikach...

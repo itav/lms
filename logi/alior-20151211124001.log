@@ -1,0 +1,17 @@
+Wczytuje liste przetworzonych wyciagow... 84 wczytano
+Sprawdzam liste plikow w folderze... 86 plikow
+Sprawdzam, ktore pliki nie zostaly przetworzone... 2 plikow
+
+Przetwarzanie pliku 70000120201512040086.7z, katalog /tmp/rpt-42638897491542bf... Katalog stworzony... Plik rozpakowany...
+   ID: 34 Data: 20151204 Kwota: 333.57 Opis: RYSZARD SEWERYN KRASICKIEGO 13 CZELAD 41-253 217 [70000120201512040086.rpt]
+
+Razem zaksiegowano 333.57zl z pliku 70000120201512040086.rpt.  Usunieto katalog tymczasowy /tmp/rpt-42638897491542bf...
+
+Przetwarzanie pliku 70000120201512080088.7z, katalog /tmp/rpt-4a31d30dbde0fb0c... Katalog stworzony... Plik rozpakowany...
+   ID: 33 Data: 20151208 Kwota: 141.46 Opis: FAKTURA 147/LMS/2015 222 [70000120201512080088.rpt]
+   ID: 30 Data: 20151208 Kwota: 29.00 Opis: 176/LMS/2015SEBASTIAN TRZEPIETOWSKI 223 [70000120201512080088.rpt]
+
+Razem zaksiegowano 170.46zl z pliku 70000120201512080088.rpt.  Usunieto katalog tymczasowy /tmp/rpt-4a31d30dbde0fb0c...
+
+Dodaje 3 wpisow SQL do bazy
+Zapisuje informacje o przetworzonych plikach...

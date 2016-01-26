@@ -65,7 +65,23 @@ $menu = array(
 				),
 			),
 		),
-
+// lanserver
+                'lanserver' => array(
+                        'name' => 'Poczta',
+                        'img' =>'slanserver.gif',
+                        'link' =>'?m=lanserver',
+                        'tip' => 'Lanserver dodatki',
+                        'accesskey' =>'l',
+                        'prio' => 0,
+                        'submenu' => array(
+                                array(
+                                        'name' => 'Wysłane faktury',
+                                        'link' =>'?m=lanserver&o=sendinvoices',
+                                        'tip' => 'Wysłane faktury',
+                                        'prio' => 10,
+                                ),
+                        ),
+                ),
 
 		'customers' => array(
 			'name' => trans('Customers'),
@@ -761,6 +777,19 @@ if(!empty($custom_menu))
         // be sure that file exists
 	if(file_exists($custom_menu))
 	        require_once($custom_menu);
+
+// -- GPON DASAN --
+if (chkconfig(ConfigHelper::getConfig('phpui.gpon')))
+{
+       if(!empty($CONFIG['directories']['lib_dir']))
+       {
+               if(file_exists($CONFIG['directories']['lib_dir'].'/gpon/GPON.menu.php'))
+               {
+                       require_once($CONFIG['directories']['lib_dir'].'/gpon/GPON.menu.php');
+               }
+       }
+}
+// -- GPON --
 
 /* Example for custom_menu file
 <?php

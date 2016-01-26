@@ -1,0 +1,11 @@
+Wczytuje liste przetworzonych wyciagow... 30 wczytano
+Sprawdzam liste plikow w folderze... 31 plikow
+Sprawdzam, ktore pliki nie zostaly przetworzone... 1 plikow
+
+Przetwarzanie pliku 70000120201509140035.7z, katalog /tmp/rpt-779bf332e622728f... Katalog stworzony... Plik rozpakowany...
+   ID: 4 Data: 20150914 Kwota: 69.00 Opis: Nowak KamilProsta 51  41-253 CzeladFA: 19/LMS/2015 93 [70000120201509140035.rpt]
+
+Razem zaksiegowano 69.00zl z pliku 70000120201509140035.rpt.  Usunieto katalog tymczasowy /tmp/rpt-779bf332e622728f...
+
+Dodaje 1 wpisow SQL do bazy
+Zapisuje informacje o przetworzonych plikach...

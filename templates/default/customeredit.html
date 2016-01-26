@@ -1,6 +1,9 @@
 {include file="header.html"}
 <!--// $Id$ //-->
 <script type="text/javascript" src="img/tinymce3/tiny_mce.js"> </script>
+{include file="header.html"}
+<!--// $Id$ //-->
+<script type="text/javascript" src="img/tinymce3/tiny_mce.js"> </script>
 <H1>{$layout.pagetitle}</H1>
 {include file="calendar_js.html"}
 <TABLE width="100%" cellpadding="3">
@@ -14,6 +17,13 @@
 			{include file="customernodesbox.html"}
 		</TD>
 	</TR>
+	{if $_phpui_gpon}
+	<TR>
+		<TD style="width: 100%;">
+			{include file="gpononu.inc.html"}
+		</TD>
+	</TR>
+	{/if}
 	{if ConfigHelper::checkConfig('privileges.logging') && (ConfigHelper::checkConfig('privileges.superuser') || ConfigHelper::checkConfig('privileges.transaction_logs'))}
 	<TR>
 		<TD style="width: 100%;">

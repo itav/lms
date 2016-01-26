@@ -1,0 +1,52 @@
+
+<TABLE class="lmsbox">
+	<THEAD>
+		<TR>
+			<td class="hand text-left bold nobr" onClick="showOrHide('cust_sendinvoices');">
+				<img src="img/print.gif">
+				<b>Lista wysłanych faktur:</b>
+			</td>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR id="cust_sendinvoices" style="display: none;">
+			<td>
+				<TABLE WIDTH="100%">
+					<tr class="dark">
+						<td class="fleftu"><B>E-mail</B></td>		    
+						<td class="fbottom ftop"><B>Faktura</B></td>
+						<td class="fbottom ftop"><B>Data wysłania</B></td>
+						<td class="fbottom ftop"><B>Data wywołania skryptu</B></td>
+						<td class="frightu"><B>ERROR</B></td>
+					</tr>
+					
+					{cycle values="light,lucid" print=false}
+					{foreach item=inv from=$send_inv}
+					<tr class="{cycle}">
+						<td class="fleft">{$inv.email}</td>
+						<td class=""><a href="?m=invoice&id={$inv.doc_id}">Pokaż</a></td>
+						<td class="">{$inv.time|date_format:"%e %B %Y %H:%M"}</td>
+						<td class="">{$inv.fakedate|date_format:"%e %B %Y %H:%M"}</td>
+						<td class="fright">{$inv.error}</td>
+					</tr>
+					{/foreach}
+					
+					<tr class="light">
+					<td class="fleft fbottom"></td>
+					<td class="fbottom"></td>
+					<td class="fbottom"></td>
+					<td class="fbottom"></td>
+					<td class="fright fbottom"></td>
+					</tr>
+				</table>
+			</td>
+		</TR>
+	</TBODY>
+</TABLE>
+
+<SCRIPT type="text/javascript">
+<!--
+	if (getCookie('cust_sendinvoices')=='1')
+		document.getElementById('cust_sendinvoices').style.display = '';
+//-->
+</SCRIPT>

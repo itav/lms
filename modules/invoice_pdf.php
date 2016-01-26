@@ -40,7 +40,7 @@ function invoice_body() {
 			invoice_body_ft0100();
 			break;
 		default:
-			require($template);
+			invoice_body_standard();
 	}
 
 	if (!isset($invoice['last']))

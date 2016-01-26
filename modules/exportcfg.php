@@ -57,7 +57,7 @@ $endln = "\n"; // end of line (unix - "\n", windows - "\r\n" )
 
 /**** invoices export settings *****/
 
-$inv_filename = 'export.txt';
+$inv_filename = 'sprzedaz.csv';
 $cnote_type = '1'; // typ dokumentu: korekta (zmienna %TYPE)
 $invoice_type = '0'; // typ dokumentu: faktura (zmienna %TYPE)
 
@@ -79,7 +79,7 @@ UWAGA: x zastêpujemy cyfr± od 1 do 8, która oznacza kolejn± stawkê,
 */
 
 // dla wygody (d³ugi) rekord mo¿e byæ tablic± z dowoln± liczb± elementów
-$inv_record[0] = '%I,"%DATE","%NUMBER",%TYPE,"%DEADLINE",%VALUE,%NETTO,%VAT,';
+$inv_record[0] = '%I,"%DATE","%NUMBER",%TYPE,"%DEADLINE",%VALUE,%NETTO1,%VATP1,%VAT1,%NETTO2,%VATP2,%VAT2,';
 $inv_record[1] = '"%CID","%CUSTOMER","%ADDRESS","%ZIP","%CITY","%TEN"';
 
 /***** cash documents export settings *****/

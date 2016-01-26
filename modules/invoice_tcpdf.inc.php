@@ -356,6 +356,8 @@ function invoice_seller() {
 
 	$account = format_bankaccount(bankaccount($invoice['customerid'], $invoice['account']));
 	$tmp = str_replace('%bankaccount', $account, $tmp);
+	$tmp .= "<br>Konto bankowe:<br>";
+	$tmp .= format_bankaccount(bankaccount($invoice['customerid'], $invoice['account']));
 
 	$tmp = preg_split('/\r?\n/', $tmp);
 	foreach ($tmp as $line)

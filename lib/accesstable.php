@@ -121,6 +121,18 @@ $access['table'][29]['name']		= trans('transaction logs');
 $access['table'][29]['allow_reg']	= '^archive(info|view)$';
 $access['table'][29]['privilege']	= 'transaction_logs';
 
+$access['table'][31]['name']            = 'GPON - zarzadzanie modulem';
+$access['table'][31]['allow_reg']       = '^gpon.*$';
+
+$access['table'][32]['name']            = 'GPON - podglad infrormacji';
+$access['table'][32]['allow_reg']       = '^((gponolt|gpononu|gpononumodels)(info|list|search|tvinfo|tvlist|signalimage)|gponoffline)$';
+
+$access['table'][33]['name']            = 'GPON - Autoprovisioning (nowy onu)';
+$access['table'][33]['allow_reg']       = '^(gpononu(add|script|edit|check))$';
+
+$access['table'][34]['name']            = 'GPON - view onu passwords';
+$access['table'][34]['privillege']      = 'view_onu_passwords';
+
 $access['table'][249]['name']		= trans('backup access forbidden');
 $access['table'][249]['deny_reg']	= '^db(del|list|new|recover|view)$';
 

@@ -364,7 +364,7 @@ function writesyslog($message,$type)
 // Creates directories tree
 function rmkdir($dir)
 {
-	if($dir[0]!='/')
+	if($dir[0]!='/*')
 		$dir = getcwd() . '/' . $dir;
 	$directories = explode('/',$dir);
 	$makedirs = 0;
@@ -388,7 +388,7 @@ function rmkdir($dir)
 // Deletes directory and all subdirs and files in it
 function rrmdir($dir)
 {
-    $files = glob($dir . '/*', GLOB_MARK);
+    $files = glob($dir . '/', GLOB_MARK);
     foreach ($files as $file) {
         if (is_dir($file))
             rrmdir($file);

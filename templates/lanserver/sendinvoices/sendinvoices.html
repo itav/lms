@@ -1,0 +1,70 @@
+{include file="header.html"}
+
+{include file="calendar_js.html"}
+
+<H1>Wysyłanie faktur emailem</H1>
+
+<form method="POST" name="sendinvoices">
+<TABLE WIDTH="100%">
+	<TR  class="dark">
+		<TD WIDTH="1%" class="fleftu"></TD>
+		<TD WIDTH="20%" class="ftop fbottom"><b>Ustawienia wysyłania faktur e-mailem</b></TD>
+		<td width="79%" class="frightu"></td>
+	</TR>
+	
+	<TR class="light">
+		<TD class="fleft"></TD>
+		<TD class="">Treść powiadomienia:</TD>
+		<td class="fright">
+		    <textarea rows="6" cols="100" name="mailbody">{$mail_body}</textarea> 
+		</td>
+	</TR>
+<!--	<TR class="light">
+		<TD class="fleft"></TD>
+		<TD class="">Adres SMTP:</TD>
+		<td class="fright"></td>
+	</TR>
+	<TR class="light">
+		<TD class="fleft"></TD>
+		<TD class="">Login:</TD>
+		<td class="fright"></td>
+	</TR>
+	<TR class="light">
+		<TD class="fleft"></TD>
+		<TD class="">Hasło:</TD>
+		<td class="fright"></td>
+	</TR>-->
+
+	<TR  class="light">
+		<TD class="fleft fbottom"></TD>
+		<TD class="fbottom"></TD>
+		<td class="fright fbottom" style="text-align: right">
+		    <A href="javascript:document.sendinvoices.submit();" ACCESSKEY="S">{t}Submit{/t} <img src="img/save.gif" alt=""></A>
+		</td>
+	</TR>
+</TABLE>
+</form>
+<br>
+
+<TABLE WIDTH="100%">
+    <TR  class="dark">
+	<TD class="fleftu frightu"><b>Archiwum wysłanych faktur:</b></TD>
+    </tr>
+    
+    {cycle values="light,lucid" print=false}
+    {foreach item=year from=$maillog key=yname}
+    {foreach item=month from=$year key=mname}
+    <tr class="{cycle}">
+	<TD class="fleft fright"><b>
+	    <a href="?m=lanserver&o=sendinvoices&n={$mname}&y={$yname}">{"01-$mname-$yname"|date_format:"%Y %B"}</a>
+	</b></TD>
+    </tr>
+    {/foreach}
+    {/foreach}
+    
+    <tr class="light">
+	<TD class="fleft fright fbottom"></TD>
+    </tr>
+</table>
+
+{include file="footer.html"}

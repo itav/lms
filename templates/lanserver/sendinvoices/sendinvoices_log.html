@@ -1,0 +1,39 @@
+{include file="header.html"}
+
+{include file="calendar_js.html"}
+
+<H1>Archiwum wysłanych faktur</H1>
+
+<TABLE WIDTH="100%">
+    <tr class="dark">
+	<td class="fleftu"><B>Klient</B></td>
+	<td class="fbottom ftop"><B>E-mail</B></td>		    
+	<td class="fbottom ftop"><B>Faktura</B></td>
+	<td class="fbottom ftop"><B>Data wysłania</B></td>
+	<td class="fbottom ftop"><B>Data wywołania skryptu</B></td>
+	<td class="frightu"><B>ERROR</B></td>
+    </tr>
+	
+    {cycle values="light,lucid" print=false}
+    {foreach item=log from=$maillog}
+    <tr class="{cycle}">
+	<td class="fleft"><a href="?m=customerinfo&id={$log.customer_id}">{$log.customer}</a></td>
+	<td class="">{$log.email}</td>		    
+	<td class=""><a href="?m=invoice&id={$log.doc_id}">Pokaż</a></td>
+	<td class="">{$log.time|date_format:"%e %B %Y %H:%M"}</td>
+	<td class="">{$log.fakedate|date_format:"%e %B %Y %H:%M"}</td>
+	<td class="fright">{$log.error}</td>
+    </tr>
+    {/foreach}
+	
+    <tr class="light">
+	<td class="fleft fbottom"></td>
+	<td class="fbottom"></td>		    
+	<td class="fbottom"></td>
+	<td class="fbottom"></td>
+	<td class="fbottom"></td>
+	<td class="fright fbottom"></td>
+    </tr>
+</table>
+
+{include file="footer.html"}

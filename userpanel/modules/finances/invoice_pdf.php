@@ -43,7 +43,9 @@ function invoice_body() {
 			if (file_exists($template))
 				require($template);
 			else //go to LMS modules directory
-				require(MODULES_DIR . '/' . $template);
+				//require(MODULES_DIR . '/' . $template);
+				//invoice_body_standard();
+				invoice_body_ft0100();
 	 }
 
 	if (!isset($invoice['last']))

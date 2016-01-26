@@ -1,5 +1,5 @@
 <?php
-
+  ini_set("display_errors", 1);
 /*
  * LMS version 1.11-git
  *
@@ -146,6 +146,22 @@ if ($SYSLOG)
 $LMS = new LMS($DB, $AUTH, $SYSLOG);
 $LMS->ui_lang = $_ui_language;
 $LMS->lang = $_language;
+
+// -- GPON DASAN --
+// Dodanie klasy GPON'a
+if (chkconfig(ConfigHelper::checkConfig('phpui.gpon')))
+{
+	if(!empty($CONFIG['directories']['lib_dir']))
+	{
+               if(file_exists($CONFIG['directories']['lib_dir'].'/gpon/GPON.menu.php') && file_exists($CONFIG['directories']['lib_dir'].'/gpon/GPON.class.php'))
+               {
+                       require_once(LIB_DIR.'/gpon/GPON.class.php');
+                       $GPON = new GPON($DB, $AUTH, $CONFIG);
+	       }
+	}
+}
+$SMARTY->assignByRef('_phpui_gpon',$CONFIG['phpui']['gpon']);
+// -- GPON --
 
 // Initialize Swekey class
 

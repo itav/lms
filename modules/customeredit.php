@@ -260,6 +260,7 @@ $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 
 $customerid = $customerinfo['id'];
 include(MODULES_DIR.'/customer.inc.php');
+include(MODULES_DIR.'/gpononu.inc.php');
 
 $SMARTY->assign('customerinfo',$customerinfo);
 $SMARTY->assign('cstateslist',$LMS->GetCountryStates());
