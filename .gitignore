@@ -7,6 +7,7 @@ backups/*
 documents/*
 !documents/templates
 cache/*
+lib/Smarty/*
 
 # Temporary files
 *~
