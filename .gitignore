@@ -7,8 +7,6 @@ backups/*
 documents/*
 !documents/templates
 cache/*
-lib/Smarty/*
-
 # Temporary files
 *~
 *.swp
@@ -25,3 +23,4 @@ daemon/lmsd
 /vendor/
 /logi/
 /data/
+/lib/Smarty/
