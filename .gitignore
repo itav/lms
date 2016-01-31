@@ -73,3 +73,5 @@ cache/*
 # Executables
 daemon/lmsd
 /vendor/
+/logi/
+/data/
