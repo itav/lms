@@ -127,6 +127,18 @@ $menu = array(
 					'tip' => trans('Allows you to send notices to customers'),
 					'prio' => 60,
 				),
+                                array(
+					'name' => trans('Origins'),
+					'link' =>'?m=customeroriginlist',
+					'tip' => trans('List of customer origins'),
+					'prio' => 62,
+				),
+                                array(
+					'name' => trans('New origin'),
+					'link' =>'?m=customeroriginadd',
+					'tip' => trans('Add a customer origin'),
+					'prio' => 64,
+				),
 				array(
 					'name' => trans('Reports'),
 					'link' =>'?m=customerprint',
