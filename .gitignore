@@ -20,7 +20,7 @@ cache/*
 
 # Executables
 daemon/lmsd
-/vendor/
-/logi/
-/data/
-/lib/Smarty/
+vendor/
+logi/
+data/
+lib/Smarty/
