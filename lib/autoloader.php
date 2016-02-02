@@ -131,3 +131,4 @@ function application_autoloader($class) {
 
 // register autoloader
 spl_autoload_register('application_autoloader');
+require_once SYS_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php' ;

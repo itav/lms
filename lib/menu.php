@@ -129,13 +129,13 @@ $menu = array(
 				),
                                 array(
 					'name' => trans('Origins'),
-					'link' =>'?m=customeroriginlist',
+					'link' =>'?m=optomedia&o=customer_origin_list',
 					'tip' => trans('List of customer origins'),
 					'prio' => 62,
 				),
                                 array(
 					'name' => trans('New origin'),
-					'link' =>'?m=customeroriginadd',
+					'link' =>'?m=optomedia&o=customer_origin_add',
 					'tip' => trans('Add a customer origin'),
 					'prio' => 64,
 				),

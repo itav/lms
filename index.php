@@ -171,10 +171,12 @@ if (ConfigHelper::checkConfig('phpui.use_swekey')) {
 
 $SMARTY->setTemplateDir(null);
 $custom_templates_dir = ConfigHelper::getConfig('phpui.custom_templates_dir');
-if (!empty($custom_templates_dir) && file_exists(SMARTY_TEMPLATES_DIR . '/' . $custom_templates_dir) && !is_file(SMARTY_TEMPLATES_DIR . '/' . $custom_templates_dir))
+if (!empty($custom_templates_dir) && file_exists(SMARTY_TEMPLATES_DIR . '/' . $custom_templates_dir) && !is_file(SMARTY_TEMPLATES_DIR . '/' . $custom_templates_dir)) {
     $SMARTY->AddTemplateDir(SMARTY_TEMPLATES_DIR . '/' . $custom_templates_dir);
+}
 $SMARTY->AddTemplateDir(
         array(
+            MODULES_DIR . '/optomedia',
             SMARTY_TEMPLATES_DIR . '/default',
             SMARTY_TEMPLATES_DIR,
         )

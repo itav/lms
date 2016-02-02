@@ -1,13 +1,17 @@
 {
-    "name": "lmsgit/lms",
+    "name": "itav/lms",
     "description": "Lan Management System (LMS)",
     "homepage": "http://lms.org.pl/",
     "license": "GPL-2.0",
     "require": {
-        
     },
     "require_dev": {
         "phpunit/phpunit": "4.1.*",
         "phpunit/phpunit-skeleton-generator": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "modules/"
+        }
     }
 }
