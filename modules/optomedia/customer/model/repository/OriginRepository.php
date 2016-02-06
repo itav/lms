@@ -9,7 +9,7 @@ class OriginRepository
     private $db;
     
     public function __construct() {
-        $this->db = LMSDB::getInstance();
+        $this->db = \LMSDB::getInstance();
     }
     
     /**
@@ -30,6 +30,9 @@ class OriginRepository
     public function findAll()
     {
         $origins = new Origins();
+        $sql = "SELECT * FRIM origin where id_status != ? ";
+        $this->db->GetAll($sql, [Origin::STATUS_DELETE]);
+        
         return $origins;
     }
     

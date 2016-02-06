@@ -7,9 +7,10 @@ use Optomedia\Customer\Model\Origins;
 use Optomedia\Customer\Model\Repository\OriginRepository;
 
 class CustomerOriginController {
-
+    
     public function listAction() {
-
+        
+        
     }
 
     public function addAction() {

@@ -4,6 +4,9 @@ namespace Optomedia\Customer\Model;
 
 class Origin
 {
+    const STATUS_NEW = 1;
+    const STATUS_DELETE = 2;
+    
     /**
      *
      * @var int
