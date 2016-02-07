@@ -8,28 +8,21 @@
 
 namespace Optomedia\Tools;
 
-
 class ListCollection extends Collection
 {
     const IT_KEEP = 0;
     const IT_DELETE = 1;
-
     private $iteratorMode = self::IT_KEEP;
-
-
-
     public function rpush($obj)
     {
         $this->collection[] = $obj;
         return $this;
     }
-
     public function lpush($obj)
     {
         \array_unshift($this->collection, $obj);
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -37,7 +30,6 @@ class ListCollection extends Collection
     {
         return \array_pop($this->collection);
     }
-
     /**
      * @return mixed
      */
@@ -45,7 +37,6 @@ class ListCollection extends Collection
     {
         return \array_shift($this->collection);
     }
-
     /**
      * @return SmsContent
      */
@@ -54,9 +45,7 @@ class ListCollection extends Collection
         $item = $this->current();
         $this->next();
         return $item;
-
     }
-
     /**
      * @return int
      */
@@ -64,7 +53,6 @@ class ListCollection extends Collection
     {
         return $this->iteratorMode;
     }
-
     /**
      * @param int $iteratorMode
      * @return ListCollection
@@ -74,8 +62,6 @@ class ListCollection extends Collection
         $this->iteratorMode = $iteratorMode;
         return $this;
     }
-
-
     public function next(){
         parent::next();
         if($this->iteratorMode === self::IT_DELETE){

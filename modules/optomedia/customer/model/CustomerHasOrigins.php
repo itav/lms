@@ -3,53 +3,53 @@
 namespace Optomedia\Customer\Model;
 
 use Optomedia\Tools\ListCollection;
-use Optomedia\Customer\Model\Origin;
+use Optomedia\Customer\Model\CustomerHasOrigin;
 
-class Origins extends ListCollection
+class CustomerHasOrigins extends ListCollection
 {
     public function rpush($obj)
     {
-        if($obj instanceof Origin ){
+        if($obj instanceof CustomerHasOrigin ){
             return parent::rpush($obj);
         }
         throw new \Exception("Wrong type ");
     }
     public function lpush($obj)
     {
-        if($obj instanceof Origin ){
+        if($obj instanceof CustomerHasOrigin ){
             return parent::lpush($obj);
         }
         throw new \Exception("Wrong type ");
     }
     public function append( $obj)
     {
-        if($obj instanceof Origin ){
+        if($obj instanceof CustomerHasOrigin ){
             return parent::append($obj);
         }
         throw new \Exception("Wrong type ");
     }
     /**
      * @param mixed $index
-     * @param \Optomedia\Customer\Model\Origin $val
+     * @param CustomerHasOrigin $val
      * @return void
      * @throws \Exception
      */
     public function offsetSet($index, $val)
     {
-        if($val instanceof Origin ){
+        if($val instanceof CustomerHasOrigin ){
             return parent::offsetSet($index, $val);
         }
         throw new \Exception("Wrong type ");
     }
     /**
-     * @return Origin
+     * @return CustomerHasOrigin
      */
     public function rpop()
     {
         return parent::rpop();
     }
     /**
-     * @return Origin
+     * @return CustomerHasOrigin
      */
     public function lpop()
     {
@@ -63,7 +63,7 @@ class Origins extends ListCollection
         return parent::fetch();
     }
     /**
-     * @return Origin
+     * @return CustomerHasOrigin
      */
     public function current()
     {
@@ -71,7 +71,7 @@ class Origins extends ListCollection
     }
     /**
      * @param int $index
-     * @return Origin
+     * @return CustomerHasOrigin
      */
     public function offsetGet($index)
     {

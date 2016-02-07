@@ -13,7 +13,6 @@ use Countable;
 use Iterator;
 use IteratorAggregate;
 use Traversable;
-
 /**
  * Class Collection
  * Object containing array of objects and can be iterating by foreach
@@ -25,7 +24,6 @@ use Traversable;
 class Collection implements IteratorAggregate, ArrayAccess, Countable
 {
     protected $collection = [];
-
     public function __construct($obj = null)
     {
         if (is_array($obj)) {
@@ -34,18 +32,15 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
             $this->collection[] = $obj;
         }
     }
-
     public function append($obj)
     {
         $this->collection[] = $obj;
         return $this;
     }
-
     public function shift()
     {
         return array_shift($this->collection);
     }
-
     /**
      * Return the current element
      * @link http://php.net/manual/en/iterator.current.php
@@ -56,7 +51,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         return \current($this->collection);
     }
-
     /**
      * Move forward to next element
      * @link http://php.net/manual/en/iterator.next.php
@@ -67,7 +61,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         \next($this->collection);
     }
-
     /**
      * Return the key of the current element
      * @link http://php.net/manual/en/iterator.key.php
@@ -78,7 +71,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         return \key($this->collection);
     }
-
     /**
      * Checks if current position is valid
      * @link http://php.net/manual/en/iterator.valid.php
@@ -90,7 +82,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         array_key_exists($this->key(), $this->collection);
     }
-
     /**
      * Rewind the Iterator to the first element
      * @link http://php.net/manual/en/iterator.rewind.php
@@ -101,12 +92,10 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         reset($this->collection);
     }
-
     public function keys()
     {
         return array_keys($this->collection);
     }
-
     /**
      * @param int $index
      * @return bool
@@ -115,7 +104,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         return array_key_exists($index, $this->collection);
     }
-
     /**
      * @param mixed $index
      * @return mixed
@@ -124,9 +112,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         return $this->collection[$index];
     }
-
-
-
     /**
      * @param mixed $index
      */
@@ -134,8 +119,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         unset($this->collection[$index]);
     }
-
-
     /**
      * Count elements of an object
      * @link http://php.net/manual/en/countable.count.php
@@ -149,7 +132,6 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         return count($this->collection);
     }
-
     /**
      * Retrieve an external iterator
      * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
@@ -161,13 +143,10 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     {
         return new CollectionIterator($this);
     }
-
     public function __clone()
     {
         $this->collection = array_map(function($item){return clone $item;}, $this->collection);
     }
-
-
     /**
      * Offset to set
      * @link http://php.net/manual/en/arrayaccess.offsetset.php
@@ -183,24 +162,22 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     public function offsetSet($offset, $value)
     {
         if(!$offset){
-            return $this->collection[] = $value;
+            $this->collection[] = $value;
+            return;
         }
         $this->collection[$offset] = $value;
     }
 }
-
 class CollectionIterator implements Iterator
 {
     private $collection;
     private $index = 0;
     private $keys;
-
     public function __construct(Collection $collection)
     {
         $this->collection = $collection;
         $this->keys = $this->collection->keys();
     }
-
     /**
      * Return the current element
      * @link http://php.net/manual/en/iterator.current.php
@@ -211,7 +188,6 @@ class CollectionIterator implements Iterator
     {
         return $this->collection->offsetGet($this->index);
     }
-
     /**
      * Move forward to next element
      * @link http://php.net/manual/en/iterator.next.php
@@ -232,7 +208,6 @@ class CollectionIterator implements Iterator
     {
         $this->index--;
     }
-
     /**
      * Return the key of the current element
      * @link http://php.net/manual/en/iterator.key.php
@@ -243,7 +218,6 @@ class CollectionIterator implements Iterator
     {
         return $this->index;
     }
-
     /**
      * Checks if current position is valid
      * @link http://php.net/manual/en/iterator.valid.php
@@ -255,7 +229,6 @@ class CollectionIterator implements Iterator
     {
         return $this->collection->offsetExists($this->index);
     }
-
     /**
      * Rewind the Iterator to the first element
      * @link http://php.net/manual/en/iterator.rewind.php

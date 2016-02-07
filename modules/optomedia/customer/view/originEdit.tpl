@@ -1,3 +1,3 @@
 {include file="header.html"}
-<p>edit</p>
+<div>{$form}</div>
 {include file="footer.html"}

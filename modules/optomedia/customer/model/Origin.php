@@ -22,9 +22,14 @@ class Origin
      * @var string
      */    
     private $description;
+    /**
+     *
+     * @var string
+     */    
+    private $idStatus;    
     
     /**
-     * @return int Description
+     * @return int 
      */
     public function getId()
     {
@@ -74,6 +79,24 @@ class Origin
     public function setDescription($description)
     {
         $this->description = $description;
+        return $this;
+    }
+    
+    /**
+     * @return int 
+     */
+    public function getIdStatus()
+    {
+        return $this->idStatus;
+    }
+    /**
+     * 
+     * @param int $idStatus
+     * @return Origin 
+     */
+    public function setIdStatus($idStatus)
+    {
+        $this->idStatus = $idStatus;
         return $this;
     }    
 }

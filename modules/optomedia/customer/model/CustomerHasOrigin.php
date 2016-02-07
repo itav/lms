@@ -8,7 +8,12 @@ class CustomerHasOrigin
      *
      * @var int
      */
-    private $idCustomer;
+    private $id;
+    /**
+     *
+     * @var int
+     */
+    private $idCustomer;    
     /**
      *
      * @var int
@@ -24,12 +29,25 @@ class CustomerHasOrigin
      * @var int
      */
     private $idConnection;
-    /**
-     *
-     * @var int
-     */
-    private $idStatus;    
+   
     
+    /**
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+    /**
+     * 
+     * @param int $id
+     * @return CustomerHasOrigin 
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+        return $this;
+    }
     /**
      * @return int
      */
@@ -46,7 +64,7 @@ class CustomerHasOrigin
     {
         $this->idCustomer = $idCustomer;
         return $this;
-    }
+    }    
     /**
      * @return int
      */
@@ -99,24 +117,6 @@ class CustomerHasOrigin
         $this->idConnection = $idConnection;
         return $this;
     }
-
-    /**
-     * @return int
-     */
-    public function getIdStatus()
-    {
-        return $this->idStatus;
-    }
-    /**
-     * 
-     * @param int $status
-     * @return CustomerHasOrigin 
-     */
-    public function setIdStatus($status)
-    {
-        $this->idStatus = $status;
-        return $this;
-    }    
 }
 
 

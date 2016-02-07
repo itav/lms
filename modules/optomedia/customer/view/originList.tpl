@@ -1,3 +1,4 @@
 {include file="header.html"}
-<p>lista</p>
+<p>{$title}</p>
+<p>{$table}</p>
 {include file="footer.html"}

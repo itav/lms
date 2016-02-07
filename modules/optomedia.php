@@ -16,13 +16,18 @@ if (!isset($_GET['o'])) {
             $data = $controller->addAction();
             $templ = 'customer/view/originAdd.tpl';
             break;
-        case 'customer_origin_edit': 
-            $data = $controller->editAction();
+        case 'customer_origin_edit':
+            if(isset($_GET['id']) && $id = (int)$_GET['id']){
+                $data = $controller->editAction($id);
+            }            
             $templ = 'customer/view/originEdit.tpl';
             break;
-        case 'customer_origin_del': 
-            $data = $controller->delAction();
-            header('Location: http://www.onet.pl');
+        case 'customer_origin_del':
+            if(isset($_GET['id']) && $id = (int)$_GET['id']){
+                $data = $controller->delAction($id);
+            }
+            header('Location: ?m=optomedia&o=customer_origin_list');
+            die();
             break;
         default:
             $templ = '404.tpl';

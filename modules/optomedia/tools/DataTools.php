@@ -50,14 +50,14 @@ class DataTools
         }
     }
 
-    public static function camelize($src, $with_null = false)
+    public static function unbindOrm($src, $with_null = false)
     {
         if(!is_object($src))
         {
             return [];
         }
         $ret = [];
-        $reflection = new ReflectionClass($src);
+        $reflection = new \ReflectionClass($src);
 
         foreach($reflection->getProperties() as $property)
         {
@@ -73,11 +73,11 @@ class DataTools
                 }
                 if($with_null)
                 {
-                    $ret[self::camel2under($key)] = $value;
+                    $ret[self::uncamelize($key)] = $value;
                     continue;
                 } elseif (!is_null($value)){
 
-                    $ret[self::camel2under($key)] = $value;
+                    $ret[self::uncamelize($key)] = $value;
                 }
             } else {
                 $getterName = 'get'. ucfirst($key);
@@ -90,11 +90,11 @@ class DataTools
                     }
                     if($with_null)
                     {
-                        $ret[self::camel2under($key)] = $value;
+                        $ret[self::uncamelize($key)] = $value;
                         continue;
                     } elseif (!is_null($value)){
 
-                        $ret[self::camel2under($key)] = $value;
+                        $ret[self::uncamelize($key)] = $value;
                     }
                 } elseif(method_exists($src , $checkerName)){
 
@@ -104,11 +104,11 @@ class DataTools
                     }
                     if($with_null)
                     {
-                        $ret[self::camel2under($key)] = $value;
+                        $ret[self::uncamelize($key)] = $value;
                         continue;
                     } elseif (!is_null($value)){
 
-                        $ret[self::camel2under($key)] = $value;
+                        $ret[self::uncamelize($key)] = $value;
                     }
                 }
             }
@@ -116,7 +116,7 @@ class DataTools
         return $ret;
     }
 
-    public static function under2camel($string)
+    public static function camelize($string)
     {
         $string = explode( "_", $string );
         $first = true;
@@ -130,7 +130,7 @@ class DataTools
         return implode( "", $string );
     }
 
-    public static function camel2under($string)
+    public static function uncamelize($string)
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $string));
     }
