@@ -22,7 +22,7 @@ class OriginRepository {
     public function find($id) {
 
         $sql = "SELECT * FROM origin where id = ? AND id_status != ? ";
-        $row = $this->db->GetOne($sql, [$id, Origin::STATUS_DELETE]);
+        $row = $this->db->GetRow($sql, [$id, Origin::STATUS_DELETE]);
         return $this->hydrateOrigin($row);
     }
 
@@ -68,10 +68,10 @@ class OriginRepository {
     private function hydrateOrigin($row) {
         $origin = new Origin();
         if ($row) {
-            $origin->setId((int) $row['id']);
+            $origin->setId((int)$row['id']);
             $origin->setName($row['name']);
             $origin->setDescription($row['description']);
-            $origin->setIdStatus((int) $row['id_status']);
+            $origin->setIdStatus((int)$row['id_status']);
         }
         return $origin;
     }
