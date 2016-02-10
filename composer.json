@@ -4,7 +4,14 @@
     "homepage": "http://lms.org.pl/",
     "license": "GPL-2.0",
     "require": {
-        "itav/php-form-builder-class": "^3.1"
+        "itav/php-form-builder-class": "^3.1",
+        "symfony/form": "^3.0",
+        "symfony/http-foundation": "^3.0",
+        "symfony/twig-bridge": "^3.0",
+        "symfony/security-csrf": "^3.0",
+        "symfony/translation": "^3.0",
+        "symfony/config": "^3.0",
+        "pimple/pimple": "^3.0"
     },
     "require_dev": {
         "phpunit/phpunit": "4.1.*",

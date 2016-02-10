@@ -1,39 +1,48 @@
 <?php
-session_start();
 
 use Optomedia\Customer\Controller\CustomerOriginController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-if (!isset($_GET['o'])) {
+$request = Request::createFromGlobals();
+$response = new Response();
+$response->prepare($request);
+
+if (null === $request->get('o')) {
+    $response->setStatusCode(Response::HTTP_NOT_FOUND);
     $templ = '404.tpl';
 } else {
-    $data = [];
+    $templ = 'app.tpl';
     $controller = new CustomerOriginController();
-    switch ($_GET['o']) {
+    switch ($request->get('o')) {
         case 'customer_origin_list': 
-            $data = $controller->listAction();
-            $templ = 'customer/view/originList.tpl';
+            $content = $controller->listAction();
             break;
         case 'customer_origin_add': 
-            $data = $controller->addAction();
-            $templ = 'customer/view/originAdd.tpl';
+            $content = $controller->addAction();
+            
             break;
         case 'customer_origin_edit':
-            if(isset($_GET['id']) && $id = (int)$_GET['id']){
-                $data = $controller->editAction($id);
-            }            
-            $templ = 'customer/view/originEdit.tpl';
+            $content = $controller->editAction($request);           
+            
             break;
         case 'customer_origin_del':
             if(isset($_GET['id']) && $id = (int)$_GET['id']){
-                $data = $controller->delAction($id);
+                $content = $controller->delAction($id);
             }
             header('Location: ?m=optomedia&o=customer_origin_list');
             die();
             break;
         default:
+            $content = 'module not found';
             $templ = '404.tpl';
             break;
     }
-    $SMARTY->assign($data);
+    $SMARTY->assign('content', $content);
 }
-$SMARTY->display($templ);
+
+$html = $SMARTY->fetch($templ);
+$response->headers->set('Content-Type', 'text/html');
+$response->setContent($html);
+$response->send();
+
