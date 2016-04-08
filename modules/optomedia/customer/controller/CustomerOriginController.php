@@ -8,11 +8,12 @@ use Symfony\Component\Form\Extension\Core\Type;
 use Optomedia\Customer\Model\Origin;
 use Optomedia\Customer\Model\Repository\CustomerHasOriginRepository;
 use Optomedia\Tools\AbstractController;
+use Optomedia\Customer\Form\OriginType;
 
 class CustomerOriginController extends AbstractController
 {
 
-    public function listAction() {
+    public function listAction($request) {
 
         $repo = new OriginRepository();
         $origins = $repo->findAll();
@@ -44,25 +45,53 @@ class CustomerOriginController extends AbstractController
         return $this->get('twig')->render('customer/view/origin/list.html.twig', $return);
     }
 
-    public function addAction() {
-        
+    public function infoAction($request) {
+        $id = $request->get('id');
+        $repo = new OriginRepository();
+        $origin = $repo->find($request->get('id'));
+        $formFactory = $this->get('form_factory');
+        $form = $formFactory->createBuilder(OriginType::class, $origin)
+                ->add('editButton', Type\ButtonType::class)
+                ->add('deleteButton', Type\ButtonType::class)
+                ->add('cancelButton', Type\ButtonType::class)
+                ->getForm();
+        return $this->get('twig')->render(
+                'customer/view/origin/info.html.twig', 
+                array(
+                    'form' => $form->createView(),
+                    'link_edit' => "<a href='?m=optomedia&o=customer_origin_edit&id=$id'><img src='img/edit.gif'></a>",
+                    'link_edit' => "<a href='?m=optomedia&o=customer_origin_del&id=$id'><img src='img/delete.gif'></a>",
+                    'link_cancel' =>'<a href="?m=optomedia&o=customer_origin_edit"><img src="img/cancel.gif"></a>',
+                    
+                ));
+    }    
+    
+    public function addAction($request) {
+        $origin = new Origin();
+        $formFactory = $this->get('form_factory');
+        $form = $formFactory->createBuilder(OriginType::class, $origin)
+                ->getForm();
+        $form->handleRequest($request);
+        if($form->isValid()){
+            $repo = new OriginRepository();
+            $repo->insert($origin);
+            return $this->listAction($request);
+        }
+        return $this->get('twig')->render('customer/view/origin/add.html.twig', array('form' => $form->createView()));
     }
 
     public function editAction($request) {
+        $repo = new OriginRepository();
+        $origin = $repo->find($request->get('id'));
         $formFactory = $this->get('form_factory');
-        $form = $formFactory->createBuilder()
-                ->add('task', Type\CheckboxType::class)
-                ->add('dueDate', Type\DateType::class)
+        $form = $formFactory->createBuilder(OriginType::class, $origin)
                 ->getForm();
-
-
         $form->handleRequest($request);
         if ($form->isValid()) {
-            return '<h3>Valid!</h3>';
-        }
-        
+            $repo->update($origin);
+            return $this->listAction($request);
+        }        
         return $this->get('twig')->render('customer/view/origin/edit.html.twig', array('form' => $form->createView()));
-
     }
 
     public function delAction($id) {
@@ -85,36 +114,5 @@ class CustomerOriginController extends AbstractController
 
     public function delCustomerRelationAction($idOrigin = null, $idCustomer = null) {
         
-    }
-
-    public function prepareForm($id) {
-        if ($id) {
-            $repo = new OriginRepository();
-            $origin = $repo->find($id);
-        } else {
-            $origin = new Origin();
-        }
-        $form = new Form("form-elements");
-        $form->configure(array(
-            "prevent" => array("bootstrap"),
-            "action" => basename($_SERVER["SCRIPT_NAME"]) . '?m=optomedia&o=customer_origin_edit&id=' . $id,
-        ));
-        $form->addElement(new Element\Textbox("Nazwa:", "name", [
-
-            "validation" => new Validation\RegExp("/pfbc/", "Error: The %element% field must contain following keyword - \"pfbc\"."),
-            "longDesc" => "The RegExp validation class provides the means to apply custom validation to an element.  Its constructor 
-            includes two parameters: the regular expression pattern to test and the error message to display if the pattern is not matched."
-        ]));
-        $form->addElement(new Element\Textarea("Opis:", "description", [
-        ]));
-        $form->addElement(new Element\Button("Zapisz"));
-        $form->addElement(new Element\Button("Anuluj", "button", array(
-            "onclick" => 'location.href = "?m=optomedia&o=customer_origin_list"',
-        )));
-        return $form->render(true);
-    }
-
-    public function prepareOriginSelect() {
-
     }
 }

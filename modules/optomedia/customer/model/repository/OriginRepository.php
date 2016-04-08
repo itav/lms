@@ -48,9 +48,13 @@ class OriginRepository {
      * @return bool
      */
     public function update(Origin $origin) {
-        $sub = $this->prepareUpdateSubQuery($origin);
+        
+        $up = $this->prepareUpdateSubQuery($origin);
+        $sub = $up[0];
+        $vals = $up[1];
         $sql = "UPDATE origin SET $sub WHERE id = ? ";
-        return $this->db->Execute($sql, [$origin->getId()]);
+        $ret  = $this->db->Execute($sql, $vals);
+        return $ret;
     }
 
     /**
@@ -58,7 +62,14 @@ class OriginRepository {
      * @return int
      */
     public function insert(Origin $origin) {
-        
+
+        $sql = "INSERT INTO origin (name, description, id_status) VALUES ( ?, ?, ?) ";
+        $values = [
+            'name' => $origin->getName(),
+            'description' => $origin->getDescription(),
+            'id_status' => $origin->getIdStatus(),
+        ];
+        return $this->db->Execute($sql, $values);        
     }
 
     /**
@@ -82,15 +93,18 @@ class OriginRepository {
      */
     private function prepareUpdateSubQuery($entity) {
         $values = DataTools::unbindOrm($entity);
+
+        $ar = [];
+        $vals = [];
+        foreach($values as $k => $v){
+            $ar[] = " $k = ?";
+            $vals[] = $v;
+        }
         if(isset($values['id'])){
-            unset($values['id']);
-        }
-        $str = '';
-        $i = 0;
-        foreach($values as $k => $v ){
-            $str .= (!$i++) ? " $k = $v " : " , $k = $v ";
-        }
-        return $str;
-    }    
+            $vals[] = $values['id'];
+        }        
+        return [ \implode(' , ', $ar), $vals];
+    }
+    
 
 }

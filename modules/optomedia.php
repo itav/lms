@@ -16,11 +16,13 @@ if (null === $request->get('o')) {
     $controller = new CustomerOriginController();
     switch ($request->get('o')) {
         case 'customer_origin_list': 
-            $content = $controller->listAction();
+            $content = $controller->listAction($request);
+            break;
+        case 'customer_origin_info': 
+            $content = $controller->infoAction($request);
             break;
         case 'customer_origin_add': 
-            $content = $controller->addAction();
-            
+            $content = $controller->addAction($request);         
             break;
         case 'customer_origin_edit':
             $content = $controller->editAction($request);           

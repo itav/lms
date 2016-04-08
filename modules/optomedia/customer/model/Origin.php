@@ -26,7 +26,7 @@ class Origin
      *
      * @var string
      */    
-    private $idStatus;    
+    private $idStatus = 1;    
     
     /**
      * @return int 

@@ -1,7 +1,6 @@
 {# empty Twig template #}
 
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-
-    <input type="submit" />
-{{ form_end(form) }}
+{{ form_widget(form.name) }}
+{{ form_widget(form.description) }}
+{{ form_widget(form.editButton | raw) }}
+{{ form_widget(form.deleteButton) }}

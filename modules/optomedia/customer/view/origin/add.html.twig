@@ -1,7 +1,21 @@
-{# empty Twig template #}
+
+
+{% form_theme form _self %}
+
+{% block text_widget %}
+    <div style="background-color: red;">
+        {% set type = type|default('text') %}
+        {{ block('form_widget_simple') }}
+    </div>
+{% endblock %}
+
+
+
+
 
 {{ form_start(form) }}
     {{ form_widget(form) }}
-
-    <input type="submit" />
 {{ form_end(form) }}
+
+
+
