@@ -42,7 +42,7 @@ class CustomerOriginController extends AbstractController
             'title' => 'Lista źródeł pochodzenia klientów',
             'table' => $tbl->render(),
         ];
-        return $this->get('twig')->render('customer/view/origin/list.html.twig', $return);
+        return $this->get('twig')->render('Customer/View/Origin/list.html.twig', $return);
     }
 
     public function infoAction($request) {
@@ -56,7 +56,7 @@ class CustomerOriginController extends AbstractController
                 ->add('cancelButton', Type\ButtonType::class)
                 ->getForm();
         return $this->get('twig')->render(
-                'customer/view/origin/info.html.twig', 
+                'Customer/View/Origin/info.html.twig', 
                 array(
                     'form' => $form->createView(),
                     'link_edit' => "<a href='?m=optomedia&o=customer_origin_edit&id=$id'><img src='img/edit.gif'></a>",
@@ -77,7 +77,7 @@ class CustomerOriginController extends AbstractController
             $repo->insert($origin);
             return $this->listAction($request);
         }
-        return $this->get('twig')->render('customer/view/origin/add.html.twig', array('form' => $form->createView()));
+        return $this->get('twig')->render('Customer/View/Origin/add.html.twig', array('form' => $form->createView()));
     }
 
     public function editAction($request) {
@@ -91,7 +91,7 @@ class CustomerOriginController extends AbstractController
             $repo->update($origin);
             return $this->listAction($request);
         }        
-        return $this->get('twig')->render('customer/view/origin/edit.html.twig', array('form' => $form->createView()));
+        return $this->get('twig')->render('Customer/View/Origin/edit.html.twig', array('form' => $form->createView()));
     }
 
     public function delAction($id) {
