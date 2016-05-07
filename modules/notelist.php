@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -176,10 +176,10 @@ else
 	$SESSION->restore('dnlc', $c);
 $SESSION->save('dnlc', $c);
 
-if(isset($_POST['search']))
-	$h = isset($_POST['hideclosed']) ? true : false;
+if (isset($_POST['search']))
+	$h = isset($_POST['hideclosed']);
 elseif (($h = $SESSION->get('dnlh')) === NULL)
-	$h = ConfigHelper::checkValue(ConfigHelper::getConfig('notes.hide_closed', false));
+	$h = ConfigHelper::checkConfig('notes.hide_closed');
 $SESSION->save('dnlh', $h);
 
 if(isset($_POST['group'])) {
@@ -237,6 +237,6 @@ $SMARTY->assign('page', $page);
 $SMARTY->assign('marks', $marks);
 $SMARTY->assign('grouplist', $LMS->CustomergroupGetAll());
 $SMARTY->assign('notelist', $notelist);
-$SMARTY->display('notelist.html');
+$SMARTY->display('note/notelist.html');
 
 ?>

@@ -46,7 +46,7 @@ if(isset($_POST['category']))
 	if(!$error)
 	{
 		$DB->Execute('INSERT INTO rtcategories (name, description) VALUES (?, ?)',
-				array($category['name'], $category['description']));
+				array(trim($category['name']), $category['description']));
 
 		$id = $DB->GetLastInsertId('rtcategories');
 
@@ -74,6 +74,6 @@ $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 
 $SMARTY->assign('category', $category);
 $SMARTY->assign('error', $error);
-$SMARTY->display('rtcategoryadd.html');
+$SMARTY->display('rt/rtcategoryadd.html');
 
 ?>

@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -24,11 +24,11 @@
  *  $Id$
  */
 
-// get customer name and check privileges using customersview
+// get customer name and check privileges using customerview
 $customer = $DB->GetRow('SELECT a.customerid AS id, c.divisionid, '
     .$DB->Concat('c.lastname',"' '",'c.name').' AS name
     FROM assignments a
-    JOIN customersview c ON (c.id = a.customerid)
+    JOIN customerview c ON (c.id = a.customerid)
     WHERE a.id = ?', array($_GET['id']));
 
 if(!$customer)
@@ -64,10 +64,8 @@ if(isset($_POST['assignment']))
 		case WEEKLY:
 			$at = sprintf('%d',$a['at']);
 
-			if (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_current_payday', false)) && $at==0)
-			{
+			if (ConfigHelper::checkConfig('phpui.use_current_payday') && $at == 0)
 				$at = strftime('%u', time());
-			}
 
 			if($at < 1 || $at > 7)
 				$error['at'] = trans('Incorrect day of week (1-7)!');
@@ -76,15 +74,11 @@ if(isset($_POST['assignment']))
 		case MONTHLY:
 			$at = sprintf('%d',$a['at']);
 
-			if (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_current_payday', false)) && $at==0)
-			{
+			if (ConfigHelper::checkConfig('phpui.use_current_payday') && $at == 0)
 				$at = date('j', time());
-			}
-			elseif (!ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_current_payday', false))
-				 && ConfigHelper::getConfig('phpui.default_monthly_payday')>0 && $at==0)
-			{
+			elseif (!ConfigHelper::checkConfig('phpui.use_current_payday')
+				 && ConfigHelper::getConfig('phpui.default_monthly_payday') > 0 && $at == 0)
 				$at = ConfigHelper::getConfig('phpui.default_monthly_payday');
-			}
 
 			$a['at'] = $at;
 
@@ -93,8 +87,7 @@ if(isset($_POST['assignment']))
 		break;
 
 		case QUARTERLY:
-			if (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_current_payday', false)) && !$a['at'])
-			{
+			if (ConfigHelper::checkConfig('phpui.use_current_payday') && !$a['at']) {
 				$d = date('j', time());
 				$m = date('n', time());
 				$a['at'] = $d.'/'.$m;
@@ -120,12 +113,9 @@ if(isset($_POST['assignment']))
 		break;
 
 		case HALFYEARLY:
-			if(!preg_match('/^[0-9]{2}\/[0-9]{2}$/', $a['at']) && $a['at'])
-			{
+			if (!preg_match('/^[0-9]{2}\/[0-9]{2}$/', $a['at']) && $a['at'])
 				$error['at'] = trans('Incorrect date format! Enter date in DD/MM format!');
-			}
-			elseif (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_current_payday', false)) && !$a['at'])
-			{
+			elseif (ConfigHelper::checkConfig('phpui.use_current_payday') && !$a['at']) {
 				$d = date('j', time());
 				$m = date('n', time());
 				$a['at'] = $d.'/'.$m;
@@ -147,8 +137,7 @@ if(isset($_POST['assignment']))
 		break;
 
 		case YEARLY:
-			if (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_current_payday', false)) && !$a['at'])
-			{
+			if (ConfigHelper::checkConfig('phpui.use_current_payday') && !$a['at']) {
 				$d = date('j', time());
 				$m = date('n', time());
 				$a['at'] = $d.'/'.$m;
@@ -250,6 +239,16 @@ if(isset($_POST['assignment']))
 		elseif (!preg_match('/^[-]?[0-9.,]+$/', $a['value']))
 			$error['value'] = trans('Incorrect value!');
 	}
+        
+        $hook_data = $LMS->executeHook(
+            'customerassignmentedit_validation_before_submit', 
+            array(
+                'a' => $a,
+                'error' => $error
+            )
+        );
+        $a = $hook_data['a'];
+        $error = $hook_data['error'];
 
 	if(!$error) 
 	{
@@ -319,6 +318,7 @@ if(isset($_POST['assignment']))
 		$args = array(
 			$SYSLOG_RESOURCE_KEYS[SYSLOG_RES_TARIFF] => intval($a['tariffid']),
 			$SYSLOG_RESOURCE_KEYS[SYSLOG_RES_CUST] => $customer['id'],
+                        'attribute' => !empty($a['attribute']) ? $a['attribute'] : NULL,
 			'period' => $period,
 			'at' => $at,
 			'invoice' => isset($a['invoice']) ? 1 : 0,
@@ -332,7 +332,7 @@ if(isset($_POST['assignment']))
 			'paytype' => !empty($a['paytype']) ? $a['paytype'] : NULL,
 			$SYSLOG_RESOURCE_KEYS[SYSLOG_RES_ASSIGN] => $a['id']
 		);
-		$DB->Execute('UPDATE assignments SET tariffid=?, customerid=?, period=?, at=?,
+		$DB->Execute('UPDATE assignments SET tariffid=?, customerid=?, attribute=?, period=?, at=?,
 			invoice=?, settlement=?, datefrom=?, dateto=?, pdiscount=?, vdiscount=?,
 			liabilityid=?, numberplanid=?, paytype=?
 			WHERE id=?', array_values($args));
@@ -376,6 +376,13 @@ if(isset($_POST['assignment']))
 				}
 			}
 		}
+                
+                $LMS->executeHook(
+                    'customerassignmentedit_after_submit', 
+                    array(
+                        'a' => $a,
+                    )
+                );
 
 		$DB->CommitTrans();
 
@@ -388,7 +395,7 @@ else
 {
 	$a = $DB->GetRow('SELECT a.id AS id, a.customerid, a.tariffid, a.period,
 				a.at, a.datefrom, a.dateto, a.numberplanid, a.paytype,
-				a.invoice, a.settlement, a.pdiscount, a.vdiscount, a.liabilityid, 
+				a.invoice, a.settlement, a.pdiscount, a.vdiscount, a.attribute, a.liabilityid, 
 				(CASE liabilityid WHEN 0 THEN tariffs.name ELSE liabilities.name END) AS name, 
 				liabilities.value AS value, liabilities.prodid AS prodid, liabilities.taxid AS taxid
 				FROM assignments a
@@ -398,6 +405,7 @@ else
 
 	$a['pdiscount'] = floatval($a['pdiscount']);
 	$a['vdiscount'] = floatval($a['vdiscount']);
+        $a['attribute'] = $a['attribute'];
 	if (!empty($a['pdiscount'])) {
 		$a['discount'] = $a['pdiscount'];
 		$a['discount_type'] = DISCOUNT_PERCENTAGE;
@@ -445,6 +453,14 @@ $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 $customernodes = $LMS->GetCustomerNodes($customer['id']);
 unset($customernodes['total']);
 
+$LMS->executeHook(
+    'customerassignmentedit_before_display', 
+    array(
+        'a' => $a,
+        'smarty' => $SMARTY,
+    )
+);
+
 $SMARTY->assign('customernodes', $customernodes);
 $SMARTY->assign('tariffs', $LMS->GetTariffs());
 $SMARTY->assign('taxeslist', $LMS->GetTaxes());
@@ -453,6 +469,6 @@ $SMARTY->assign('assignment', $a);
 $SMARTY->assign('assignments', $LMS->GetCustomerAssignments($customer['id'], $expired));
 $SMARTY->assign('numberplanlist', $LMS->GetNumberPlans(DOC_INVOICE, NULL, $customer['divisionid'], false));
 $SMARTY->assign('customerinfo', $customer);
-$SMARTY->display('customerassignmentsedit.html');
+$SMARTY->display('customer/customerassignmentsedit.html');
 
 ?>

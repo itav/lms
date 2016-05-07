@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -23,6 +23,9 @@
  *
  *  $Id$
  */
+
+define('DBVERSION', '2016041900'); // here should be always the newest version of database!
+				 // it placed here to avoid read disk every time when we call this file.
 
 /**
  * LMSDB_driver_mysqli
@@ -472,13 +475,44 @@ abstract class LMSDB_common implements LMSDBInterface
      * 
      * @param string $field
      * @param string $separator
+     * @param boolean $distinct
      * @return string
      */
-    public function GroupConcat($field, $separator = ',')
+    public function GroupConcat($field, $separator = ',', $distinct = false)
     {
-        return $this->_driver_groupconcat($field, $separator);
+        return $this->_driver_groupconcat($field, $separator, $distinct);
 
     }
+
+	/**
+	* Gets year for date.
+	* 
+	* @param string $date
+	* @return year string
+	*/
+	public function Year($date) {
+		return $this->_driver_year($date);
+	}
+
+	/**
+	* Gets month for date.
+	* 
+	* @param string $date
+	* @return month string
+	*/
+	public function Month($date) {
+		return $this->_driver_month($date);
+	}
+
+	/**
+	* Gets day for date.
+	* 
+	* @param string $date
+	* @return day string
+	*/
+	public function Day($date) {
+		return $this->_driver_day($date);
+	}
 
     /**
      * Prepares query before execution.
@@ -640,5 +674,84 @@ abstract class LMSDB_common implements LMSDBInterface
         $this->debug = $debug;
 
     }
+
+	public function UpgradeDb($dbver = DBVERSION, $pluginclass = null, $libdir = null, $docdir = null) {
+		$lastupgrade = null;
+		if ($dbversion = $this->GetOne('SELECT keyvalue FROM dbinfo WHERE keytype = ?',
+				array('dbversion' . (is_null($pluginclass) ? '' : '_' . $pluginclass)))) {
+			if ($dbver > $dbversion) {
+				set_time_limit(0);
+
+				if ($this->_dbtype == LMSDB::POSTGRESQL && $this->GetOne('SELECT COUNT(*) FROM information_schema.routines
+					WHERE routine_name = ? AND specific_schema = ?', array('array_agg', 'pg_catalog')) > 1)
+					$this->Execute('DROP AGGREGATE IF EXISTS array_agg(anyelement)');
+
+				$lastupgrade = $dbversion;
+
+				if (is_null($libdir))
+					$libdir = LIB_DIR;
+
+				$filename_prefix = $this->_dbtype == LMSDB::POSTGRESQL ? 'postgres' : 'mysql';
+
+				$pendingupgrades = array();
+				$upgradelist = getdir($libdir . DIRECTORY_SEPARATOR . 'upgradedb', '^' . $filename_prefix . '\.[0-9]{10}\.php$');
+				if (!empty($upgradelist))
+					foreach ($upgradelist as $upgrade) {
+						$upgradeversion = preg_replace('/^' . $filename_prefix . '\.([0-9]{10})\.php$/', '\1', $upgrade);
+
+						if ($upgradeversion > $dbversion && $upgradeversion <= $dbver)
+							$pendingupgrades[] = $upgradeversion;
+					}
+
+				if (!empty($pendingupgrades)) {
+					sort($pendingupgrades);
+					foreach ($pendingupgrades as $upgrade) {
+						include($libdir . DIRECTORY_SEPARATOR . 'upgradedb' . DIRECTORY_SEPARATOR . $filename_prefix . '.' . $upgrade . '.php');
+						if (empty($this->errors))
+							$lastupgrade = $upgrade;
+						else
+							break;
+					}
+				}
+			}
+		} else {
+			// save current errors
+			$err_tmp = $this->errors;
+			$this->errors = array();
+
+			if (is_null($pluginclass)) {
+				// check if dbinfo table exists (call by name)
+				$dbinfo = $this->GetOne('SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?', array('dbinfo'));
+				// check if any tables exists in this database
+				$tables = $this->GetOne('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema NOT IN (?, ?)', array('information_schema', 'pg_catalog'));
+			} else {
+				$dbinfo = $this->GetOne('SELECT keyvalue FROM dbinfo WHERE keytype = ?', array('dbinfo_' . $pluginclass));
+				$tables = 0;
+			}
+			// if there are no tables we can install lms database
+			if ($dbinfo == 0 && $tables == 0 && empty($this->errors)) {
+				// detect database type and select schema dump file to load
+				$schema = '';
+				if ($this->_dbtype == LMSDB::POSTGRESQL)
+					$schema = 'lms.pgsql';
+				elseif ($this->_dbtype == LMSDB::MYSQL || $this->_dbtype == LMSDB::MYSQLI)
+					$schema = 'lms.mysql';
+				else
+					die ('Could not determine database type!');
+
+				if (is_null($docdir))
+					$docdir = SYS_DIR . DIRECTORY_SEPARATOR . 'doc';
+
+				if (!$sql = file_get_contents($docdir . DIRECTORY_SEPARATOR . $schema))
+					die ('Could not open database schema file ' . $docdir . DIRECTORY_SEPARATOR . $schema);
+
+				if (!$this->MultiExecute($sql))    // execute
+					die ('Could not load database schema!');
+			} else
+				// database might be installed so don't miss any error
+				$this->errors = array_merge($err_tmp, $this->errors);
+		}
+		return isset($lastupgrade) ? $lastupgrade : $dbver;
+	}
 
 }

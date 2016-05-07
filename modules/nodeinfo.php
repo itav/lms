@@ -29,7 +29,7 @@ if (isset($_GET['nodegroups'])) {
 
 	$SMARTY->assign('nodegroups', $nodegroups);
 	$SMARTY->assign('total', sizeof($nodegroups));
-	$SMARTY->display('nodegrouplistshort.html');
+	$SMARTY->display('node/nodegrouplistshort.html');
 	die;
 }
 
@@ -42,7 +42,7 @@ else
 if (!$LMS->NodeExists($nodeid)) {
 	if (isset($_GET['ownerid']))
 		$SESSION->redirect('?m=customerinfo&id=' . $_GET['ownerid']);
-	else if ($DB->GetOne('SELECT 1 FROM nodes WHERE id = ? AND ownerid = 0', array($nodeid)))
+	else if ($DB->GetOne('SELECT 1 FROM vnodes WHERE id = ? AND ownerid = 0', array($nodeid)))
 		$SESSION->redirect('?m=netdevinfo&ip=' . $nodeid . '&id=' . $LMS->GetNetDevIDByNode($nodeid));
 	else
 		$SESSION->redirect('?m=nodelist');
@@ -73,17 +73,63 @@ else
 
 $layout['pagetitle'] = trans('Node Info: $a', $nodeinfo['name']);
 
+$nodeinfo['projectname'] = trans('none');
+if ($nodeinfo['invprojectid']) {
+	$prj = $DB->GetRow("SELECT * FROM invprojects WHERE id=?", array($nodeinfo['invprojectid']));
+	if ($prj) {
+		if ($prj['type'] == INV_PROJECT_SYSTEM && intval($prj['id']==1)) {
+			/* inherited */ 
+			if ($nodeinfo['netdev']) {
+				$prj = $DB->GetRow("SELECT * FROM invprojects WHERE id=?",
+					array($netdevices['invprojectid']));
+				if ($prj) {
+					if ($prj['type'] == INV_PROJECT_SYSTEM && intval($prj['id'])==1) {
+						/* inherited */
+						if ($netdevices['netnodeid']) {
+							$prj = $DB->GetRow("SELECT p.*, n.name AS nodename FROM invprojects p
+								JOIN netnodes n ON n.invprojectid = p.id
+								WHERE n.id=?",
+								array($netdevices['netnodeid']));
+							if ($prj)
+								$nodeinfo['projectname'] = trans('$a (from network node $b)', $prj['name'], $prj['nodename']);
+						}
+					} else
+						$nodeinfo['projectname'] = trans('$a (from network device $b)', $prj['name'], $netdevices['name']);
+				}
+			}
+		} else
+			$nodeinfo['projectname'] = $prj['name'];
+	}
+}
+$nodeauthtype = array();
+$authtype = $nodeinfo['authtype'];
+if ($authtype != 0) {
+	$nodeauthtype['pppoe'] = ($authtype & 1);
+	$nodeauthtype['dhcp'] = ($authtype & 2);
+	$nodeauthtype['eap'] = ($authtype & 4);
+}
+
 include(MODULES_DIR . '/nodexajax.inc.php');
 
 $nodeinfo = $LMS->ExecHook('node_info_init', $nodeinfo);
+
+$hook_data = $LMS->executeHook('nodeinfo_before_display',
+	array(
+		'nodeinfo' => $nodeinfo,
+		'smarty' => $SMARTY,
+	)
+);
+$nodeinfo = $hook_data['nodeinfo'];
 
 $SMARTY->assign('xajax', $LMS->RunXajax());
 
 $SMARTY->assign('nodesessions', $LMS->GetNodeSessions($nodeid));
 $SMARTY->assign('netdevices', $netdevices);
+$SMARTY->assign('nodeauthtype', $nodeauthtype);
 $SMARTY->assign('nodegroups', $nodegroups);
 $SMARTY->assign('othernodegroups', $othernodegroups);
 $SMARTY->assign('nodeinfo', $nodeinfo);
-$SMARTY->display('nodeinfo.html');
+$SMARTY->assign('objectid', $nodeinfo['id']);
+$SMARTY->display('node/nodeinfo.html');
 
 ?>

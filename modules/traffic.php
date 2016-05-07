@@ -2,7 +2,7 @@
 
 /* LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -216,10 +216,8 @@ switch($bar)
 	default: // set filter window
 		$SMARTY->assign('netlist',$LMS->GetNetworks());
 		$SMARTY->assign('nodelist',$LMS->GetNodeList());
-		if (!ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.big_networks', false)))
-		{
-				$SMARTY->assign('customers', $LMS->GetCustomerNames());
-		}
+		if (!ConfigHelper::checkConfig('phpui.big_networks'))
+			$SMARTY->assign('customers', $LMS->GetCustomerNames());
 		$bars = 0;
 	break;
 }
@@ -258,6 +256,6 @@ $SMARTY->assign('bars', $bars);
 $SMARTY->assign('bar', $bar);
 $SMARTY->assign('trafficorder', $SESSION->is_set('trafficorder') ? $SESSION->get('trafficorder') : 'download');
 $SMARTY->assign('trafficnet', $SESSION->is_set('trafficnet') ? $SESSION->get('trafficnet') : 0);
-$SMARTY->display('traffic.html');
+$SMARTY->display('traffic/traffic.html');
 
 ?>

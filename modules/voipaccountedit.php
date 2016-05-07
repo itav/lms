@@ -45,8 +45,11 @@ if(isset($_POST['voipaccountedit']))
 {
 	$voipaccountedit = $_POST['voipaccountedit'];
 	
-	foreach($voipaccountedit as $key => $value)
-		$voipaccountedit[$key] = trim($value);
+	foreach($voipaccountedit as $key => $value) {
+		if (!is_array($value)) {
+			$voipaccountedit[$key] = trim($value);
+		}
+	}
 	
 	if($voipaccountedit['login']=='')
 		$error['login'] = trans('Voip account login is required!');
@@ -83,7 +86,7 @@ if(isset($_POST['voipaccountedit']))
 		$error['passwd'] = trans('Voip account password is required!');
 	elseif(strlen($voipaccountedit['passwd']) > 32)
 		$error['passwd'] = trans('Voip account password is too long (max.32 characters)!');
-	elseif(!preg_match('/^[_a-z0-9-]+$/i', $voipaccountedit['passwd']))
+	elseif(!preg_match('/^[_a-z0-9-@]+$/i', $voipaccountedit['passwd']))
 		$error['passwd'] = trans('Specified password contains forbidden characters!');		
 
 	if($voipaccountedit['phone']=='')
@@ -110,23 +113,57 @@ if(isset($_POST['voipaccountedit']))
 	$voipaccountinfo['passwd'] = $voipaccountedit['passwd'];
 	$voipaccountinfo['phone'] = $voipaccountedit['phone'];
 	$voipaccountinfo['ownerid'] = $voipaccountedit['ownerid'];
+	$voipaccountinfo['location'] = $voipaccountedit['location'];
+	$voipaccountinfo['location_city'] = $voipaccountedit['location_city'];
+	$voipaccountinfo['location_street'] = $voipaccountedit['location_street'];
+	$voipaccountinfo['location_house'] = $voipaccountedit['location_house'];
+	$voipaccountinfo['location_flat'] = $voipaccountedit['location_flat'];
 
+        $hook_data = $plugin_manager->executeHook(
+            'voipaccountedit_before_submit',
+            array(
+                'voipaccountedit' => $voipaccountedit,
+                'error' => $error
+            )
+        );
+        $voipaccountedit = $hook_data['voipaccountedit'];
+        $error = $hook_data['error'];
+        
 	if(!$error)
 	{
+		if (empty($voipaccountedit['teryt'])) {
+			$voipaccountedit['location_city'] = null;
+			$voipaccountedit['location_street'] = null;
+			$voipaccountedit['location_house'] = null;
+			$voipaccountedit['location_flat'] = null;
+		}
+
 		$LMS->VoipAccountUpdate($voipaccountedit);
 		$SESSION->redirect('?m=voipaccountinfo&id='.$voipaccountedit['id']);
 		die;
 	}
-}
+} else
+	if ($voipaccountinfo['location_city'] && $voipaccountinfo['location_street'])
+		$voipaccountinfo['teryt'] = 1;
 
 $customers = $LMS->GetCustomerNames();
 
 include(MODULES_DIR.'/customer.inc.php');
 
+$hook_data = $plugin_manager->executeHook(
+    'voipaccountedit_before_display', 
+    array(
+        'voipaccountinfo' => $voipaccountinfo,
+        'smarty' => $SMARTY,
+    )
+);
+
+$voipaccountinfo = $hook_data['voipaccountinfo'];
+
 $SMARTY->assign('customervoipaccounts',$customervoipaccounts);
 $SMARTY->assign('error',$error);
 $SMARTY->assign('voipaccountinfo',$voipaccountinfo);
 $SMARTY->assign('customers',$customers);
-$SMARTY->display('voipaccountedit.html');
+$SMARTY->display('voipaccount/voipaccountedit.html');
 
 ?>

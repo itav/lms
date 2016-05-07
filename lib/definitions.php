@@ -37,6 +37,81 @@ $CTYPES = array(
     CTYPES_CONTRACTOR	=> trans('contractor'),
 );
 
+// customer statuses
+define('CSTATUS_INTERESTED', 1);
+define('CSTATUS_WAITING', 2);
+define('CSTATUS_CONNECTED', 3);
+define('CSTATUS_DISCONNECTED', 4);
+define('CSTATUS_DEBT_COLLECTION', 5);
+define('CSTATUS_LAST', CSTATUS_DEBT_COLLECTION);
+
+$CSTATUSES = array(
+	CSTATUS_CONNECTED => array(
+		'singularlabel' => trans('connected<!singular>'),
+		'plurallabel' => trans('connected<!plural>'),
+		'summarylabel' => trans('Connected:'),
+		'img' => 'customer.gif',
+		'alias' => 'connected'
+	),
+	CSTATUS_WAITING => array(
+		'singularlabel' => trans('waiting'),
+		'plurallabel' => trans('waiting'),
+		'summarylabel' => trans('Waiting:'),
+		'img' => 'wait.gif',
+		'alias' => 'awaiting'
+	),
+	CSTATUS_INTERESTED => array(
+		'singularlabel' => trans('interested<!singular>'),
+		'plurallabel' => trans('interested<!plural>'),
+		'summarylabel' => trans('Interested:'),
+		'img' => 'unk.gif',
+		'alias' => 'interested'
+	),
+	CSTATUS_DISCONNECTED => array(
+		'singularlabel' => trans('disconnected<!singular>'),
+		'plurallabel' => trans('disconnected<!plural>'),
+		'summarylabel' => trans('Disconnected:<!summary>'),
+		'img' => 'node_off.gif',
+		'alias' => 'disconnected'
+	),
+	CSTATUS_DEBT_COLLECTION => array(
+		'singularlabel' => trans('debt collection'),
+		'plurallabel' => trans('debt collection'),
+		'summarylabel' => trans('Debt Collection:<!summary>'),
+		'img' => 'money.gif',
+		'alias' => 'debtcollection'
+	),
+);
+
+// Config types
+define('CONFIG_TYPE_AUTO', 0);
+define('CONFIG_TYPE_BOOLEAN', 1);
+define('CONFIG_TYPE_POSITIVE_INTEGER', 2);
+define('CONFIG_TYPE_EMAIL', 3);
+define('CONFIG_TYPE_RELOADTYPE', 4);
+define('CONFIG_TYPE_DOCTYPE', 5);
+define('CONFIG_TYPE_MARGINS', 6);
+define('CONFIG_TYPE_NONE', 7);
+define('CONFIG_TYPE_RICHTEXT', 8);
+define('CONFIG_TYPE_MAIL_BACKEND', 9);
+define('CONFIG_TYPE_MAIL_SECURE', 10);
+define('CONFIG_TYPE_DATE_FORMAT', 11);
+
+$CONFIG_TYPES = array(
+	CONFIG_TYPE_AUTO => trans('- auto -'),
+	CONFIG_TYPE_NONE => trans('none'),
+	CONFIG_TYPE_BOOLEAN => trans('boolean'),
+	CONFIG_TYPE_POSITIVE_INTEGER => trans('integer greater than 0'),
+	CONFIG_TYPE_EMAIL => trans('email'),
+	CONFIG_TYPE_RELOADTYPE => trans('reload type'),
+	CONFIG_TYPE_DOCTYPE => trans('document type'),
+	CONFIG_TYPE_MARGINS => trans('margins'),
+	CONFIG_TYPE_RICHTEXT => trans('visual editor'),
+	CONFIG_TYPE_MAIL_BACKEND => trans('mail backend'),
+	CONFIG_TYPE_MAIL_SECURE => trans('mail security protocol'),
+	CONFIG_TYPE_DATE_FORMAT => trans('date format'),
+);
+
 // Helpdesk ticket status
 define('RT_NEW', 0);
 define('RT_OPEN', 1);
@@ -50,11 +125,32 @@ $RT_STATES = array(
     RT_DEAD     => trans('dead')
 );
 
+// Helpdesk cause type
+define('RT_CAUSE_OTHER', 0);
+define('RT_CAUSE_CUSTOMER', 1);
+define('RT_CAUSE_COMPANY', 2);
+
+$RT_CAUSE = array(
+    RT_CAUSE_OTHER => trans("unknown/other"),
+    RT_CAUSE_CUSTOMER => trans("customer's side"),
+    RT_CAUSE_COMPANY => trans("company's side")
+);
+
+// Helpdesk note type
+define('RTNOTE', 1);
+define('RTNOTE_OWNER_CHANGE', 2);
+define('RTNOTE_QUEUE_CHANGE', 4);
+define('RTNOTE_STATE_CHANGE', 8);
+define('RTNOTE_CAUSE_CHANGE', 16);
+define('RTNOTE_CUSTOMER_CHANGE', 32);
+define('RTNOTE_SUBJECT_CHANGE', 64);
+
 // Messages status and type
 define('MSG_NEW', 1);
 define('MSG_SENT', 2);
 define('MSG_ERROR', 3);
 define('MSG_DRAFT', 4);
+define('MSG_DELIVERED', 5);
 
 define('MSG_MAIL', 1);
 define('MSG_SMS', 2);
@@ -200,10 +296,19 @@ $PAYTYPES = array(
 // Contact types
 define('CONTACT_MOBILE', 1);
 define('CONTACT_FAX', 2);
+define('CONTACT_LANDLINE', 4);
+define('CONTACT_EMAIL', 8);
+define('CONTACT_INVOICES', 16);
+define('CONTACT_NOTIFICATIONS', 32);
+define('CONTACT_BANKACCOUNT', 64);
+define('CONTACT_DISABLED', 16384);
 
 $CONTACTTYPES = array(
-    CONTACT_MOBILE 	=>	trans('mobile'),
-    CONTACT_FAX 	=>	trans('fax'),
+    CONTACT_MOBILE          =>	trans('mobile'),
+    CONTACT_FAX             =>	trans('fax'),
+    CONTACT_INVOICES        =>	trans('invoices'),
+    CONTACT_DISABLED        =>	trans('disabled'),
+    CONTACT_NOTIFICATIONS   =>	trans('notifications'),
 );
 
 define('DISCOUNT_PERCENTAGE', 1);
@@ -245,6 +350,9 @@ $LINKTECHNOLOGIES = array(
 		3 => 'ADSL2+',
 		4 => 'VDSL',
 		5 => 'VDSL2',
+		10 => 'HDSL',
+		11 => 'PDH',
+		12 => 'POTS/ISDN',
 		6 => '10 Mb/s Ethernet',
 		7 => '100 Mb/s Fast Ethernet',
 		8 => '1 Gigabit Ethernet',
@@ -267,6 +375,8 @@ $LINKTECHNOLOGIES = array(
 		110 => 'DC-HSPA+',
 		111 => 'MC-HSPA+',
 		112 => 'LTE',
+		113 => 'UMTS',
+		114 => 'DMS',
 	),
 	2 => array(
 		200 => 'CWDM',
@@ -276,9 +386,15 @@ $LINKTECHNOLOGIES = array(
 		204 => '100 Mb/s Fast Ethernet',
 		205 => '1 Gigabit Ethernet',
 		206 => '10 Gigabit Ethernet',
+		210 => '40 Gigabit Ethernet',
 		207 => '100 Gigabit Ethernet',
 		208 => 'EPON',
 		209 => 'GPON',
+		211 => 'ATM',
+		212 => 'PDH',
+		250 => '(EURO)DOCSIS 1.x',
+		251 => '(EURO)DOCSIS 2.x',
+		252 => '(EURO)DOCSIS 3.x',
 	),
 );
 
@@ -315,14 +431,108 @@ $PASSWDEXPIRATIONS = array(
 	365	=> trans('year'),
 );
 
+$NETELEMENTSTATUSES = array(
+	0	=> trans('existing'),
+	1	=> trans('under construction'),
+	2	=> trans('planned'),
+);
+
+$NETELEMENTTYPES = array(
+	0	=> 'budynek biurowy',
+	2	=> 'budynek mieszkalny',
+	1	=> 'budynek przemysłowy',
+	11	=> 'budynek usługowy',
+	12	=> 'budynek użyteczności publicznej',
+	3	=> 'obiekt sakralny',
+	13	=> 'obiekt sieci elektroenergetycznej',
+	5	=> 'wieża',
+	4	=> 'maszt',
+	10	=> 'komin',
+	6	=> 'kontener',
+	7	=> 'szafa uliczna',
+	14	=> 'słup',
+	8	=> 'skrzynka',
+	9	=> 'studnia kablowa',
+);
+
+$NETELEMENTOWNERSHIPS = array(
+	0	=> 'Węzeł własny',
+	1	=> 'Węzeł współdzielony z innym podmiotem',
+	2	=> 'Węzeł obcy',
+);
+
+$USERPANEL_ID_TYPES = array(
+	1	=> array(
+		'label' => trans('Customer ID:'),
+		'selection' => trans('Customer ID and PIN'),
+	),
+	2	=> array(
+		'label' => trans('Phone number:'),
+		'selection' => trans('Phone number and PIN'),
+	),
+	3	=> array(
+		'label' => trans('Document number:'),
+		'selection' => trans('Document number and PIN'),
+	),
+	4	=> array(
+		'label' => trans('Customer e-mail:'),
+		'selection' => trans('Customer e-mail and PIN'),
+	),
+);
+
+define('EVENT_OTHER', 1);
+define('EVENT_NETWORK', 2);
+define('EVENT_SERVICE', 3);
+define('EVENT_INSTALLATION', 4);
+define('EVENT_MEETING', 5);
+
+$EVENTTYPES = array(
+	EVENT_SERVICE      => trans('service<!event>'),
+	EVENT_INSTALLATION => trans('installation'),
+	EVENT_NETWORK      => trans('network'),
+	EVENT_MEETING      => trans('meeting'),
+	EVENT_OTHER        => trans('other')
+);
+
+define('SESSIONTYPE_PPPOE', 1);
+define('SESSIONTYPE_DHCP', 2);
+define('SESSIONTYPE_EAP', 4);
+define('SESSIONTYPE_WIFI', 8);
+define('SESSIONTYPE_VOIP', 16);
+
+$SESSIONTYPES = array(
+	SESSIONTYPE_PPPOE => array(
+		'label' => trans('PPPoE Client'),
+		'tip' => 'Enable/disable PPPoE Server Client'
+	),
+	SESSIONTYPE_DHCP => array(
+		'label' => trans('DHCP Client'),
+		'tip' => 'Enable/disable DHCP Server Client'
+	),
+	SESSIONTYPE_EAP => array(
+		'label' => trans('EAP Client'),
+		'tip' => 'Enable/disable EAP Server Client'
+	),
+	SESSIONTYPE_WIFI => array(
+		'label' => trans('WiFi AP Client'),
+		'tip' => 'Enable/disable WiFi AP Client access'
+	),
+	SESSIONTYPE_VOIP => array(
+		'label' => trans('VoIP Gateway'),
+		'tip' => 'Enable/disable VoIP Gateway access'
+	),
+);
+
 if(isset($SMARTY))
 {
 	$SMARTY->assign('_CTYPES',$CTYPES);
+	$SMARTY->assign('_CSTATUSES', $CSTATUSES);
 	$SMARTY->assign('_DOCTYPES', $DOCTYPES);
 	$SMARTY->assign('_PERIODS', $PERIODS);
 	$SMARTY->assign('_GUARANTEEPERIODS', $GUARANTEEPERIODS);
 	$SMARTY->assign('_NUM_PERIODS', $NUM_PERIODS);
 	$SMARTY->assign('_RT_STATES', $RT_STATES);
+	$SMARTY->assign('_CONFIG_TYPES', $CONFIG_TYPES);
 	$SMARTY->assign('_MESSENGERS', $MESSENGERS);
 	$SMARTY->assign('_TARIFFTYPES', $TARIFFTYPES);
 	$SMARTY->assign('_PAYTYPES', $PAYTYPES);
@@ -334,8 +544,18 @@ if(isset($SMARTY))
 	$SMARTY->assign('_LINKSPEEDS', $LINKSPEEDS);
 	$SMARTY->assign('_BOROUGHTYPES', $BOROUGHTYPES);
 	$SMARTY->assign('_PASSWDEXPIRATIONS', $PASSWDEXPIRATIONS);
+	$SMARTY->assign('_NETELEMENTSTATUSES', $NETELEMENTSTATUSES);
+	$SMARTY->assign('_NETELEMENTTYPES', $NETELEMENTTYPES);
+	$SMARTY->assign('_NETELEMENTOWNERSHIPS', $NETELEMENTOWNERSHIPS);
+	$SMARTY->assign('_USERPANEL_ID_TYPES', $USERPANEL_ID_TYPES);
+	$SMARTY->assign('_EVENTTYPES', $EVENTTYPES);
+	$SMARTY->assign('_SESSIONTYPES', $SESSIONTYPES);
 }
 
 define('DEFAULT_NUMBER_TEMPLATE', '%N/LMS/%Y');
+
+// Investment project types
+define('INV_PROJECT_REGULAR', 0);
+define('INV_PROJECT_SYSTEM', 1)
 
 ?>

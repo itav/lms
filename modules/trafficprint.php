@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -24,7 +24,7 @@
  *  $Id$
  */
 
-if (!ConfigHelper::checkConfig('privileges.reports'))
+if (!ConfigHelper::checkConfig('privileges.superuser') && !ConfigHelper::checkConfig('privileges.reports'))
 	access_denied();
 
 $type = isset($_GET['type']) ? $_GET['type'] : '';
@@ -83,10 +83,10 @@ switch($type)
 		}
 
 		if (strtolower(ConfigHelper::getConfig('phpui.report_type')) == 'pdf') {
-			$output = $SMARTY->fetch('printcustomertraffic.html');
+			$output = $SMARTY->fetch('print/printcustomertraffic.html');
 			html2pdf($output, trans('Reports'), $layout['pagetitle']);
 		} else {
-			$SMARTY->display('printcustomertraffic.html');
+			$SMARTY->display('print/printcustomertraffic.html');
 		}
 	break;
 
@@ -100,16 +100,14 @@ switch($type)
 		for($i=1; $i<13; $i++)
 			$months[$i] = strftime('%B', mktime(0,0,0,$i,1));
 
-		if (!ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.big_networks', false)))
-		{
+		if (!ConfigHelper::checkConfig('phpui.big_networks'))
 			$SMARTY->assign('customers', $LMS->GetCustomerNames());
-		}
 		$SMARTY->assign('currmonth', date('n'));
 		$SMARTY->assign('curryear', date('Y'));
 		$SMARTY->assign('statyears', $statyears);
 		$SMARTY->assign('months', $months);
 		$SMARTY->assign('printmenu', 'traffic');
-		$SMARTY->display('printindex.html');
+		$SMARTY->display('print/printindex.html');
 	break;
 }
 

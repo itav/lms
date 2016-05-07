@@ -48,7 +48,7 @@ $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 
 if ($channel['id']) {
     $channel['devices'] = $DB->GetAll('SELECT id, name, location,
-        (SELECT COUNT(*) FROM nodes WHERE netdev = netdevices.id AND ownerid > 0) AS nodes
+        (SELECT COUNT(*) FROM vnodes WHERE netdev = netdevices.id AND ownerid > 0) AS nodes
 	    FROM netdevices
     	WHERE channelid = ? ORDER BY name', array($channel['id']));
 
@@ -58,10 +58,10 @@ if ($channel['id']) {
 } else {
     // default channel
     $channel['devices'] = $DB->GetAll('SELECT id, name, location,
-        (SELECT COUNT(*) FROM nodes WHERE netdev = netdevices.id AND ownerid > 0) AS nodes
+        (SELECT COUNT(*) FROM vnodes WHERE netdev = netdevices.id AND ownerid > 0) AS nodes
 	    FROM netdevices WHERE id IN (
             SELECT netdev
-            FROM nodes
+            FROM vnodes
             WHERE netdev > 0 AND id IN (
                 SELECT nodeid
                 FROM ewx_stm_nodes
@@ -75,6 +75,6 @@ $channel['nodecnt'] = $DB->GetOne('SELECT COUNT(*) FROM ewx_stm_nodes n
     WHERE channelid = ?', array($channel['cid']));
 
 $SMARTY->assign('channel', $channel);
-$SMARTY->display('ewxchinfo.html');
+$SMARTY->display('ewxch/ewxchinfo.html');
 
 ?>

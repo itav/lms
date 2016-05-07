@@ -83,7 +83,7 @@ int main(int argc, char *argv[], char **envp)
         configfile = ( getenv("LMSINI") ? getenv("LMSINI") : "/etc/lms/lms.ini" );
 
     	// read environment and command line
-	driver = ( getenv("LMSDBTYPE") ? getenv("DBTYPE") : "mysql" );
+	driver = ( getenv("LMSDBTYPE") ? getenv("LMSDBTYPE") : strdup("mysql") );
 	passwd = ( getenv("LMSDBPASS") ? getenv("LMSDBPASS") : "" );
 	dbname = ( getenv("LMSDBNAME") ? getenv("LMSDBNAME") : "lms" );
 	user = ( getenv("LMSDBUSER") ? getenv("LMSDBUSER") : "lms" );
@@ -128,8 +128,9 @@ int main(int argc, char *argv[], char **envp)
 
         if( !dbdrv )
         {
-                syslog(LOG_CRIT, "Unable to load database driver '%s': %s", dbdrv_path, dlerror());
-                fprintf(stderr, "Unable to load database driver '%s': %s.\n", dbdrv_path, dlerror());
+                char * errMsg = dlerror();
+                syslog(LOG_CRIT, "Unable to load database driver '%s': %s", dbdrv_path, errMsg);
+                fprintf(stderr, "Unable to load database driver '%s': %s.\n", dbdrv_path, errMsg);
                 exit(1);
         }
         else
@@ -516,7 +517,7 @@ static void parse_command_line(int argc, char **argv)
         default:
 		printf("LMS Daemon version %s (%s). Command line options:\n", PACKAGE_VERSION, LMSD_REVISION);
         	printf(" --config-file -C file\t\tpath to ini file (default: /etc/lms/lms.ini)\n");
-        	printf(" --type -t [dbtype]\tdatabase type (default: mysql)\n");
+        	printf(" --dbtype -t [dbtype]\tdatabase type (default: mysql)\n");
         	printf(" --dbhost -h host[:port]\tdatabase host (default: 'localhost')\n");
         	printf(" --dbname -d db_name\t\tdatabase name (default: 'lms')\n");
         	printf(" --dbuser -u db_user\t\tdatabase user (default: 'lms')\n");

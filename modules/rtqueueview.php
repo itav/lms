@@ -108,6 +108,8 @@ $SESSION->save('rts', $s);
 
 $layout['pagetitle'] = trans('Tickets List');
 $queue = $LMS->GetQueueContents($queuedata['id'], $o, $s, $owner, $queuedata['catid']);
+if(is_array($queuedata['id']))
+	$queuedata['id'] = 0;
 
 $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 
@@ -143,6 +145,6 @@ $SMARTY->assign('pagelimit',$pagelimit);
 $SMARTY->assign('page',$page);
 $SMARTY->assign('start',$start);
 $SMARTY->assign('users', $LMS->GetUserNames());
-$SMARTY->display('rtqueueview.html');
+$SMARTY->display('rt/rtqueueview.html');
 
 ?>

@@ -326,7 +326,7 @@ void reload(GLOBAL *g, struct payments_module *p)
 	char monthday[3], month[3], year[5], quarterday[4], weekday[2], yearday[4], halfday[4];
 	char monthname[20], nextmon[8];
 
-	char *nets = strdup(" AND EXISTS (SELECT 1 FROM nodes, networks n "
+	char *nets = strdup(" AND EXISTS (SELECT 1 FROM vnodes, networks n "
 				"WHERE ownerid = a.customerid "
 				    "AND (%nets) "
 	                "AND ((ipaddr > address AND ipaddr < broadcast(address, inet_aton(mask))) "
@@ -336,7 +336,7 @@ void reload(GLOBAL *g, struct payments_module *p)
 	char *netname = strdup(netnames);
 	char *netsql = strdup("");
 
-	char *enets = strdup(" AND NOT EXISTS (SELECT 1 FROM nodes, networks n "
+	char *enets = strdup(" AND NOT EXISTS (SELECT 1 FROM vnodes, networks n "
 				"WHERE ownerid = a.customerid "
 				    "AND (%enets) "
 	                "AND ((ipaddr > address AND ipaddr < broadcast(address, inet_aton(mask))) "
@@ -542,7 +542,7 @@ void reload(GLOBAL *g, struct payments_module *p)
 	// let's create main query
 	char *query = strdup("SELECT a.tariffid, a.customerid, a.period, t.period AS t_period, "
 	    "a.at, a.suspended, a.invoice, a.id AS assignmentid, a.settlement, a.datefrom, a.pdiscount, a.vdiscount, "
-		"c.paytype, a.paytype AS a_paytype, a.numberplanid, d.inv_paytype AS d_paytype, "
+		"c.paytype, a.paytype AS a_paytype, a.numberplanid, a.attribute, d.inv_paytype AS d_paytype, "
 		"UPPER(c.lastname) AS lastname, c.name AS custname, c.address, c.zip, c.city, c.ten, c.ssn, "
 		"c.countryid, c.divisionid, c.paytime, "
 		"d.name AS div_name, d.shortname AS div_shortname, d.address AS div_address, d.city AS div_city, d.zip AS div_zip, "
@@ -558,7 +558,7 @@ void reload(GLOBAL *g, struct payments_module *p)
 			"ELSE ROUND((li.value - li.value * a.pdiscount / 100) - a.vdiscount, 2) "
 			"END) AS value "
 		"FROM assignments a "
-		"JOIN customers c ON (a.customerid = c.id) "
+		"JOIN customeraddressview c ON (a.customerid = c.id) "
 		"LEFT JOIN tariffs t ON (a.tariffid = t.id) "
 		"LEFT JOIN liabilities li ON (a.liabilityid = li.id) "
 		"LEFT JOIN divisions d ON (d.id = c.divisionid) "
@@ -705,6 +705,7 @@ void reload(GLOBAL *g, struct payments_module *p)
 			}
 			g->str_replace(&description, "%type", tarifftype);
 			g->str_replace(&description, "%tariff", g->db->get_data(res,i,"name"));
+			g->str_replace(&description, "%attribute", g->db->get_data(res,i,"attribute"));
 			g->str_replace(&description, "%next_mon", nextmon);
 			g->str_replace(&description, "%month", monthname);
 			g->str_replace(&description, "%currentm", month);
@@ -932,6 +933,7 @@ void reload(GLOBAL *g, struct payments_module *p)
 				g->str_replace(&description, "%period", get_diff_period(datefrom, today-86400));
 				g->str_replace(&description, "%type", tarifftype);
 				g->str_replace(&description, "%tariff", g->db->get_data(res,i,"name"));
+				g->str_replace(&description, "%attribute", g->db->get_data(res,i,"attribute"));
 				g->str_replace(&description, "%month", monthname);
 				g->str_replace(&description, "%year", year);
 
@@ -1106,7 +1108,7 @@ struct payments_module * init(GLOBAL *g, MODULE *m)
 
 	p->base.reload = (void (*)(GLOBAL *, MODULE *)) &reload;
 
-	p->comment = strdup(g->config_getstring(p->base.ini, p->base.instance, "comment", "Subscription: %tariff for period: %period"));
+	p->comment = strdup(g->config_getstring(p->base.ini, p->base.instance, "comment", "Subscription: %tariff - %attribute for period: %period"));
 	p->s_comment = strdup(g->config_getstring(p->base.ini, p->base.instance, "settlement_comment", p->comment));
 	p->deadline = strdup(g->config_getstring(p->base.ini, p->base.instance, "deadline", "14"));
 	p->paytype = g->config_getint(p->base.ini, p->base.instance, "paytype", 2);

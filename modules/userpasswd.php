@@ -38,6 +38,9 @@ if ($LMS->UserExists($id)) {
 
 		if (!check_password_strength($passwd['passwd']))
 			$error['password'] = trans('The password should contain at least one capital letter, one lower case letter, one digit and should consist of at least 8 characters!');
+		
+		if ($LMS->PasswdExistsInHistory($id, $passwd['passwd']))
+			$error['password'] = trans('You already used this password!');
 
 		if (!$error) {
 			$LMS->SetUserPassword($id, $passwd['passwd']);
@@ -51,7 +54,7 @@ if ($LMS->UserExists($id)) {
 
 	$SMARTY->assign('error', $error);
 	$SMARTY->assign('passwd', $passwd);
-	$SMARTY->display('userpasswd.html');
+	$SMARTY->display('user/userpasswd.html');
 } else
 	$SESSION->redirect('?m='. $SESSION->get('lastmodule'));
 

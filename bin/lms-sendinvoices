@@ -23,6 +23,7 @@
 #  $Id$
 
 use strict;
+use warnings;
 use DBI;
 use Config::IniFiles;
 use Getopt::Long;
@@ -121,6 +122,7 @@ my $smtp_auth = $ini->val('sendinvoices', 'smtp_auth') || ''; # 'LOGIN', 'PLAIN'
 
 my $filetype = $ini->val('invoices', 'type') || '';
 my $debug_email = $ini->val('sendinvoices', 'debug_email') || '';
+my $language = $ini->val('sendinvoices', 'language') || 'pl';
 my $sender_name = $ini->val('sendinvoices', 'sender_name') || '';
 my $sender_email = $ini->val('sendinvoices', 'sender_email') || '';
 my $mail_subject = $ini->val('sendinvoices', 'mail_subject') || 'Invoice No. %invoice';
@@ -227,12 +229,13 @@ if($customergroups)
 			LEFT JOIN customergroups ON (customerassignments.customergroupid = customergroups.id) ";
 }
 
-$dbq = $dbase->prepare("SELECT d.id, d.number, d.cdate, c.email, d.name, d.customerid, n.template
+$dbq = $dbase->prepare("SELECT d.id, d.number, d.cdate, d.name, d.customerid, n.template,
+				(SELECT contact FROM customercontacts WHERE customerid = c.id AND (type & 16 > 0) ORDER BY id LIMIT 1) AS email
 			FROM documents d 
-			LEFT JOIN customers c ON (c.id = d.customerid) 
+			LEFT JOIN customers c ON (c.id = d.customerid)
 			LEFT JOIN numberplans n ON (n.id = d.numberplanid)
 			$groupjoin
-			WHERE c.deleted = 0 AND d.type = 1 AND c.email != '' 
+			WHERE c.deleted = 0 AND d.type = 1 AND EXISTS (SELECT id FROM customercontacts WHERE customerid = c.id AND (type & 16 > 0))
 				AND d.cdate >= $daystart AND d.cdate <= $dayend AND c.invoicenotice = 1
 				$groupwhere");
 $dbq->execute();
@@ -240,6 +243,7 @@ while(my $row = $dbq->fetchrow_hashref())
 {
 	my $sender;
 	my $ua = LWP::UserAgent->new;
+	$ua->default_header('Accept-Language' => $language);
 	# fix problems with new version IO::Socket::SSL
 	my %ssl_opts;
 	$ssl_opts{'verify_hostname'} = 0;

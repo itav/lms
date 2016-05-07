@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2015 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -23,6 +23,9 @@
  *
  *  $Id$
  */
+
+if (!isset($_POST['xjxfun'])) {
+
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $exists = $LMS->CustomerExists($_GET['id']);
 
@@ -38,7 +41,7 @@ elseif (isset($_POST['customerdata']))
 {
 	$customerdata = $_POST['customerdata'];
 	foreach($customerdata as $key=>$value)
-		if($key != 'uid' && $key != 'contacts')
+		if($key != 'uid' && $key != 'contacts' && $key != 'emails' && $key != 'accounts')
 			$customerdata[$key] = trim($value);
 
 	if($customerdata['lastname'] == '')
@@ -47,8 +50,20 @@ elseif (isset($_POST['customerdata']))
     if($customerdata['name'] == '' && !$customerdata['type'])
         $error['name'] = trans('First name cannot be empty!');
 
-	if($customerdata['address']=='')
-		$error['address'] = trans('Address required!');
+	if ($customerdata['street'] == '')
+		$error['street'] = trans('Street name required!');
+
+	if ($customerdata['building'] != '' && $customerdata['street'] == '')
+		$error['street'] = trans('Street name required!');
+
+	if ($customerdata['apartment'] != '' && $customerdata['building'] == '')
+		$error['building'] = trans('Building number required!');
+
+	if ($customerdata['post_building'] != '' && $customerdata['post_street'] == '')
+		$error['post_street'] = trans('Street name required!');
+
+	if ($customerdata['post_apartment'] != '' && $customerdata['post_building'] == '')
+		$error['post_building'] = trans('Building number required!');
 
 	if($customerdata['ten'] !='' && !check_ten($customerdata['ten']) && !isset($customerdata['tenwarning']))
 	{
@@ -78,9 +93,6 @@ elseif (isset($_POST['customerdata']))
 		$error['post_zip'] = trans('Incorrect ZIP code! If you are sure you want to accept it, then click "Submit" again.');
 		$post_zipwarning = 1;
 	}
-
-	if($customerdata['email']!='' && !check_email($customerdata['email']))
-		$error['email'] = trans('Incorrect email!');
 
 	if($customerdata['pin'] == '')
 		$error['pin'] = trans('PIN code is required!');
@@ -112,18 +124,63 @@ elseif (isset($_POST['customerdata']))
 		if($val) $im[$idx] = $val;
 	}
 
-	foreach($customerdata['contacts'] as $idx => $val)
-    {
-	        $phone = trim($val['phone']);
-	        $name = trim($val['name']);
-            $type = !empty($val['type']) ? array_sum($val['type']) : NULL;
+	$contacts = array();
 
-            $customerdata['contacts'][$idx]['type'] = $type;
+        $emaileinvoice = FALSE;
+	foreach ($customerdata['emails'] as $idx => $val) {
+		$email = trim($val['email']);
+		$name = trim($val['name']);
+                $type = !empty($val['type']) ? array_sum($val['type']) : NULL;
+                $type += CONTACT_EMAIL;
 
-	        if($name && !$phone)
-	                $error['contact'.$idx] = trans('Phone number is required!');
-	        elseif($phone)
-	                $contacts[] = array('name' => $name, 'phone' => $phone, 'type' => $type);
+                if($type & (CONTACT_INVOICES | CONTACT_DISABLED))
+                        $emaileinvoice = TRUE;
+
+
+                $customerdata['emails'][$idx]['type'] = $type;
+
+		if ($email != '' && !check_email($email))
+			$error['email' . $idx] = trans('Incorrect email!');
+		elseif ($name && !$email)
+			$error['email' . $idx] = trans('Email address is required!');
+		elseif ($email)
+			$contacts[] = array('name' => $name, 'contact' => $email, 'type' => $type);
+	}
+
+        if(isset($customerdata['invoicenotice']) && !$emaileinvoice)
+                $error['invoicenotice'] = trans('If the customer wants to receive an electronic invoice must be checked e-mail address to which to send e-invoices');
+
+	foreach ($customerdata['contacts'] as $idx => $val) {
+		$phone = trim($val['phone']);
+		$name = trim($val['name']);
+		$type = !empty($val['type']) ? array_sum($val['type']) : NULL;
+
+                if($type == CONTACT_DISABLED){
+                    $type += CONTACT_LANDLINE;
+                }
+
+		$customerdata['contacts'][$idx]['type'] = $type;
+
+		if ($name && !$phone)
+			$error['contact' . $idx] = trans('Phone number is required!');
+		elseif ($phone)
+			$contacts[] = array('name' => $name, 'contact' => $phone, 'type' => empty($type) ? CONTACT_LANDLINE : $type);
+	}
+
+	foreach ($customerdata['accounts'] as $idx => $val) {
+		$account = trim($val['account']);
+		$name = trim($val['name']);
+		$type = !empty($val['type']) ? array_sum($val['type']) : NULL;
+		$type += CONTACT_BANKACCOUNT;
+
+		$customerdata['accounts'][$idx]['type'] = $type;
+
+		if ($account != '' && !check_bankaccount($account))
+			$error['account' . $idx] = trans('Incorrect bank account!');
+		elseif ($name && !$account)
+			$error['account' . $idx] = trans('Bank account is required!');
+		elseif ($account)
+			$contacts[] = array('name' => $name, 'contact' => $account, 'type' => $type);
 	}
 
 	if ($customerdata['cutoffstop'] == '')
@@ -137,6 +194,16 @@ elseif (isset($_POST['customerdata']))
 	} else
 		$error['cutoffstop'] = trans('Incorrect date of cutoff suspending!');
 
+        $hook_data = $LMS->executeHook(
+            'customeredit_validation_before_submit', 
+            array(
+                'customerdata' => $customerdata,
+                'error' => $error
+            )
+        );
+        $customerdata = $hook_data['customerdata'];
+        $error = $hook_data['error'];
+        
 	if(!$error) {
 		$customerdata['cutoffstop'] = $cutoffstop;
 
@@ -153,6 +220,15 @@ elseif (isset($_POST['customerdata']))
 
 		$LMS->CustomerUpdate($customerdata);
 
+                $hook_data = $LMS->executeHook(
+                    'customeredit_after_submit', 
+                    array(
+                        'customerdata' => $customerdata,
+                    )
+                );
+                $customeradd = $hook_data['customeradd'];
+                $id = $hook_data['id'];
+                
 		if ($SYSLOG) {
 			$imids = $DB->GetCol('SELECT id FROM imessengers WHERE customerid = ?', array($customerdata['id']));
 			if (!empty($imids))
@@ -194,19 +270,22 @@ elseif (isset($_POST['customerdata']))
 					$SYSLOG->AddMessage(SYSLOG_RES_CUSTCONTACT, SYSLOG_OPER_DELETE, $args, array_keys($args));
 				}
 		}
+
 		$DB->Execute('DELETE FROM customercontacts WHERE customerid = ?', array($customerdata['id']));
-		if(isset($contacts))
-			foreach($contacts as $contact) {
-				$DB->Execute('INSERT INTO customercontacts (customerid, phone, name, type)
-					VALUES(?, ?, ?, ?)', array($customerdata['id'], $contact['phone'], $contact['name'], $contact['type']));
+		if (!empty($contacts))
+			foreach ($contacts as $contact) {
+				if ($contact['type'] & CONTACT_BANKACCOUNT)
+					$contact['contact'] = preg_replace('/[^a-zA-Z0-9]/', '', $contact['contact']);
+				$DB->Execute('INSERT INTO customercontacts (customerid, contact, name, type) VALUES (?, ?, ?, ?)',
+					array($customerdata['id'], $contact['contact'], $contact['name'], $contact['type']));
 				if ($SYSLOG) {
 					$contactid = $DB->GetLastInsertID('customercontacts');
 					$args = array(
 						$SYSLOG_RESOURCE_KEYS[SYSLOG_RES_CUSTCONTACT] => $contactid,
 						$SYSLOG_RESOURCE_KEYS[SYSLOG_RES_CUST] => $customerdata['id'],
-						'phone' => $contact['phone'],
+						'contact' => $contact['contact'],
 						'name' => $contact['name'],
-						'type' => $contact['type']
+						'type' => $contact['type'],
 					);
 					$SYSLOG->AddMessage(SYSLOG_RES_CUSTCONTACT, SYSLOG_OPER_ADD, $args,
 						array($SYSLOG_RESOURCE_KEYS[SYSLOG_RES_CUSTCONTACT],
@@ -236,9 +315,7 @@ elseif (isset($_POST['customerdata']))
 
 		$SMARTY->assign('error',$error);
 	}
-}
-else
-{
+} else {
 	$customerinfo = $LMS->GetCustomer($_GET['id']);
 
 	if ($customerinfo['cutoffstop'])
@@ -252,6 +329,15 @@ else
 
 	if (empty($customerinfo['contacts']))
 		$customerinfo['contacts'][] = array();
+
+	if (empty($customerinfo['emails']))
+		$customerinfo['emails'][] = array();
+
+	if (empty($customerinfo['accounts']))
+		$customerinfo['accounts'][] = array();
+	else
+		foreach ($customerinfo['accounts'] as &$account)
+			$account['account'] = format_bankaccount($account['account']);
 }
 
 $layout['pagetitle'] = trans('Customer Edit: $a',$customerinfo['customername']);
@@ -259,14 +345,29 @@ $layout['pagetitle'] = trans('Customer Edit: $a',$customerinfo['customername']);
 $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 
 $customerid = $customerinfo['id'];
+
 include(MODULES_DIR.'/customer.inc.php');
 include(MODULES_DIR.'/gpononu.inc.php');
 
+}
+
+$LMS->InitXajax();
+
+$hook_data = $LMS->executeHook(
+    'customeredit_before_display', 
+    array(
+        'customerinfo' => $customerinfo,
+        'smarty' => $SMARTY
+    )
+);
+$customerinfo = $hook_data['customerinfo'];
+
+$SMARTY->assign('xajax', $LMS->RunXajax());
 $SMARTY->assign('customerinfo',$customerinfo);
 $SMARTY->assign('cstateslist',$LMS->GetCountryStates());
 $SMARTY->assign('countrieslist',$LMS->GetCountries());
 $SMARTY->assign('divisions', $DB->GetAll('SELECT id, shortname, status FROM divisions ORDER BY shortname'));
 $SMARTY->assign('recover',($action == 'recover' ? 1 : 0));
-$SMARTY->display('customeredit.html');
+$SMARTY->display('customer/customeredit.html');
 
 ?>

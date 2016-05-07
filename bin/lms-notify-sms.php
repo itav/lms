@@ -4,7 +4,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -42,28 +42,25 @@ foreach ($parameters as $key => $val) {
 	$short_to_longs[$newkey] = $val;
 }
 $options = getopt(implode('', array_keys($parameters)), $parameters);
-foreach($short_to_longs as $short => $long)
-	if (array_key_exists($short, $options))
-	{
+foreach ($short_to_longs as $short => $long)
+	if (array_key_exists($short, $options)) {
 		$options[$long] = $options[$short];
 		unset($options[$short]);
 	}
 
-if (array_key_exists('version', $options))
-{
+if (array_key_exists('version', $options)) {
 	print <<<EOF
 lms-notify-sms.php
-(C) 2001-2013 LMS Developers
+(C) 2001-2016 LMS Developers
 
 EOF;
 	exit(0);
 }
 
-if (array_key_exists('help', $options))
-{
+if (array_key_exists('help', $options)) {
 	print <<<EOF
 lms-notify-sms.php
-(C) 2001-2013 LMS Developers
+(C) 2001-2016 LMS Developers
 
 -C, --config-file=/etc/lms/lms.ini      alternate config file (default: /etc/lms/lms.ini);
 -h, --help                      print this help and exit;
@@ -78,11 +75,10 @@ EOF;
 }
 
 $quiet = array_key_exists('quiet', $options);
-if (!$quiet)
-{
+if (!$quiet) {
 	print <<<EOF
 lms-notify-sms.php
-(C) 2001-2013 LMS Developers
+(C) 2001-2016 LMS Developers
 
 EOF;
 }
@@ -95,46 +91,43 @@ if (array_key_exists('type', $options))
 if (array_key_exists('config-file', $options))
 	$CONFIG_FILE = $options['config-file'];
 else
-	$CONFIG_FILE = '/etc/lms/lms.ini';
+	$CONFIG_FILE = DIRECTORY_SEPARATOR . 'etc' . DIRECTORY_SEPARATOR . 'lms' . DIRECTORY_SEPARATOR . 'lms.ini';
 
-if (!$quiet) {
-	echo "Using file ".$CONFIG_FILE." as config.\n";
-}
+if (!$quiet)
+	echo "Using file ".$CONFIG_FILE." as config." . PHP_EOL;
 
 if (!is_readable($CONFIG_FILE))
-	die("Unable to read configuration file [".$CONFIG_FILE."]!\n");
+	die("Unable to read configuration file [".$CONFIG_FILE."]!" . PHP_EOL);
+
+define('CONFIG_FILE', $CONFIG_FILE);
 
 $CONFIG = (array) parse_ini_file($CONFIG_FILE, true);
 
 // Check for configuration vars and set default values
 $CONFIG['directories']['sys_dir'] = (!isset($CONFIG['directories']['sys_dir']) ? getcwd() : $CONFIG['directories']['sys_dir']);
-$CONFIG['directories']['lib_dir'] = (!isset($CONFIG['directories']['lib_dir']) ? $CONFIG['directories']['sys_dir'].'/lib' : $CONFIG['directories']['lib_dir']);
+$CONFIG['directories']['lib_dir'] = (!isset($CONFIG['directories']['lib_dir']) ? $CONFIG['directories']['sys_dir'] . DIRECTORY_SEPARATOR . 'lib' : $CONFIG['directories']['lib_dir']);
 
 define('SYS_DIR', $CONFIG['directories']['sys_dir']);
 define('LIB_DIR', $CONFIG['directories']['lib_dir']);
 
-// Load autloader
-require_once(LIB_DIR.'/autoloader.php');
-
-// Do some checks and load config defaults
-
-require_once(LIB_DIR.'/config.php');
+// Load autoloader
+$composer_autoload_path = SYS_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (file_exists($composer_autoload_path)) {
+    require_once $composer_autoload_path;
+} else {
+    die("Composer autoload not found. Run 'composer install' command from LMS directory and try again. More informations at https://getcomposer.org/");
+}
 
 // Init database
 
 $DB = null;
 
 try {
-
-    $DB = LMSDB::getInstance();
-
+	$DB = LMSDB::getInstance();
 } catch (Exception $ex) {
-    
-    trigger_error($ex->getMessage(), E_USER_WARNING);
-    
-    // can't working without database
-    die("Fatal error: cannot connect to database!\n");
-    
+	trigger_error($ex->getMessage(), E_USER_WARNING);
+	// can't working without database
+	die("Fatal error: cannot connect to database!" . PHP_EOL);
 }
 
 // debtors notify
@@ -158,11 +151,11 @@ $debug_sms = ConfigHelper::getConfig('sms.debug_sms', '');
 
 // Include required files (including sequence is important)
 
-require_once(LIB_DIR.'/language.php');
-include_once(LIB_DIR.'/definitions.php');
-require_once(LIB_DIR.'/unstrip.php');
-require_once(LIB_DIR.'/common.php');
-require_once(LIB_DIR . '/SYSLOG.class.php');
+require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'language.php');
+include_once(LIB_DIR . DIRECTORY_SEPARATOR . 'definitions.php');
+require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'unstrip.php');
+require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'common.php');
+require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'SYSLOG.class.php');
 
 if (ConfigHelper::checkConfig('phpui.logging') && class_exists('SYSLOG'))
 	$SYSLOG = new SYSLOG($DB);
@@ -196,8 +189,7 @@ function parse_data($data, $row) {
 		$saldo = $DB->GetOne("SELECT SUM(value)
 			FROM assignments, tariffs
 			WHERE tariffid = tariffs.id AND customerid = ?
-				AND (datefrom <= ?NOW? OR datefrom = 0)
-				AND (dateto > ?NOW? OR dateto = 0)
+				AND datefrom <= ?NOW? AND (dateto > ?NOW? OR dateto = 0)
 				AND ((datefrom < dateto) OR (datefrom = 0 AND datefrom = 0))",
 			array($row['id']));
 		$data = preg_replace("/\%abonament/", $saldo, $data);
@@ -247,17 +239,18 @@ if ($debtors_message && (empty($types) || in_array('debtors', $types))) {
 			SUM(value) AS balance, x.phone
 		FROM customers c
 		JOIN cash ON (c.id = cash.customerid)
-		JOIN (SELECT " . $DB->GroupConcat('phone') . " AS phone, customerid
+		JOIN (SELECT " . $DB->GroupConcat('contact') . " AS phone, customerid
 			FROM customercontacts
-			WHERE (type & 1) = 1
+			WHERE (type & ?) = ?
 			GROUP BY customerid
 		) x ON (x.customerid = c.id)
 		LEFT JOIN documents d ON d.id = cash.docid
 		WHERE cash.docid = 0 OR (cash.docid <> 0
 			AND (d.type = 2 OR (d.type IN (1,3)
 				AND d.cdate + d.paytime * 86400 < ?NOW?)))
+				AND c. mailingnotice = 1
 		GROUP BY c.id, c.pin, c.lastname, c.name, x.phone
-		HAVING SUM(value) < ?", array($limit));
+		HAVING SUM(value) < ?", array(CONTACT_MOBILE | CONTACT_DISABLED, CONTACT_MOBILE, $limit));
 
 	if (!empty($customers)) {
 		if (!$debug)
@@ -269,7 +262,7 @@ if ($debtors_message && (empty($types) || in_array('debtors', $types))) {
 			$phones = explode(',', $row['phone']);
 			foreach ($phones as $phone) {
 				if (!$quiet)
-					printf("[debt] %s (%04d): %s\n",
+					printf("[debt] %s (%04d): %s" . PHP_EOL,
 						$row['lastname'] . ' ' . $row['name'], $row['id'], $phone);
 
 				if (!$debug)
@@ -286,9 +279,9 @@ if ($invoices_message && (empty($types) || in_array('invoices', $types))) {
 		COALESCE(ca.balance, 0) AS balance, v.value
 		FROM documents d
 		JOIN customers c ON (c.id = d.customerid)
-		JOIN (SELECT " . $DB->GroupConcat('phone') . " AS phone, customerid
+		JOIN (SELECT " . $DB->GroupConcat('contact') . " AS phone, customerid
 			FROM customercontacts
-			WHERE (type & 1) = 1
+			WHERE (type & ?) = ?
 			GROUP BY customerid
 		) x ON (x.customerid = d.customerid)
 		JOIN (SELECT SUM(value) * -1 AS value, docid
@@ -302,7 +295,8 @@ if ($invoices_message && (empty($types) || in_array('invoices', $types))) {
 		) ca ON (ca.customerid = d.customerid)
 		WHERE d.type = 1
 			AND d.cdate > ?NOW? - 86400
-		");
+		 	AND c.mailingnotice = 1
+		",array(CONTACT_MOBILE | CONTACT_DISABLED, CONTACT_MOBILE));
 
 	if (!empty($documents)) {
 		if (!$debug)
@@ -316,7 +310,7 @@ if ($invoices_message && (empty($types) || in_array('invoices', $types))) {
 			$phones = explode(',', $row['phone']);
 			foreach ($phones as $phone) {
 				if (!$quiet)
-					printf("[new invoice] %s (%04d) %s: %s\n",
+					printf("[new invoice] %s (%04d) %s: %s" . PHP_EOL,
 						$row['name'], $row['id'], $row['doc_number'], $phone);
 
 				if (!$debug)
@@ -334,9 +328,9 @@ if ($deadline_message && (empty($types) || in_array('deadline', $types))) {
 		FROM documents d
 		JOIN customers c ON (c.id = d.customerid)
 		JOIN (
-			SELECT " . $DB->GroupConcat('phone') . " AS phone, customerid
+			SELECT " . $DB->GroupConcat('contact') . " AS phone, customerid
 			FROM customercontacts
-			WHERE (type & 1) = 1
+			WHERE (type & ?) = ?
 			GROUP BY customerid
 		) x ON (x.customerid = d.customerid)
 		JOIN (
@@ -356,8 +350,9 @@ if ($deadline_message && (empty($types) || in_array('deadline', $types))) {
 		) ca ON (ca.customerid = d.customerid)
 		WHERE d.type = 1 AND d.closed = 0 AND ca.balance < 0
 			AND d.cdate + (d.paytime + 1 + ?) * 86400 > ?NOW?
-			AND d.cdate + (d.paytime + ?) * 86400 < ?NOW?",
-		array($deadline_days, $deadline_days));
+			AND d.cdate + (d.paytime + ?) * 86400 < ?NOW?
+			AND c.mailingnotice = 1",
+		array(CONTACT_MOBILE | CONTACT_DISABLED, CONTACT_MOBILE, $deadline_days, $deadline_days));
 
 	if (!empty($documents)) {
 		if (!$debug)
@@ -371,7 +366,7 @@ if ($deadline_message && (empty($types) || in_array('deadline', $types))) {
 			$phones = explode(',', $row['phone']);
 			foreach ($phones as $phone) {
 				if (!$quiet)
-					printf("[deadline] %s (%04d) %s: %s\n",
+					printf("[deadline] %s (%04d) %s: %s" . PHP_EOL,
 						$row['name'], $row['id'], $row['doc_number'], $phone);
 
 				if (!$debug)
@@ -388,9 +383,9 @@ if ($notes_message && (empty($types) || in_array('notes', $types))) {
 		COALESCE(ca.balance, 0) AS balance, v.value
 		FROM documents d
 		JOIN customers c ON (c.id = d.customerid)
-		JOIN (SELECT " . $DB->GroupConcat('phone') . " AS phone, customerid
+		JOIN (SELECT " . $DB->GroupConcat('contact') . " AS phone, customerid
 			FROM customercontacts
-			WHERE (type & 1) = 1
+			WHERE (type & ?) = ?
 			GROUP BY customerid
 		) x ON (x.customerid = d.customerid)
 		JOIN (SELECT SUM(value) * -1 AS value, docid
@@ -403,7 +398,8 @@ if ($notes_message && (empty($types) || in_array('notes', $types))) {
 			GROUP BY customerid
 		) ca ON (ca.customerid = d.customerid)
 		WHERE d.type = 5
-			AND d.cdate > ?NOW? - 86400");
+			AND d.cdate > ?NOW? - 86400
+			AND c.mailingnotice = 1",array(CONTACT_MOBILE | CONTACT_DISABLED, CONTACT_MOBILE));
 
 	if (!empty($documents)) {
 		if (!$debug)
@@ -417,7 +413,7 @@ if ($notes_message && (empty($types) || in_array('notes', $types))) {
 			$phones = explode(',', $row['phone']);
 			foreach ($phones as $phone) {
 				if (!$quiet)
-					printf("[new debit note] %s (%04d) %s: %s\n",
+					printf("[new debit note] %s (%04d) %s: %s" . PHP_EOL,
 						$row['name'], $row['id'], $row['doc_number'], $phone);
 
 				if (!$debug)

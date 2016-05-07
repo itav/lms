@@ -35,7 +35,7 @@ function NetDevSearch($order='name,asc', $search=NULL, $sqlskey='AND')
         switch($order)
         {
 		case 'id':
-                        $sqlord = ' ORDER BY id';
+		        $sqlord = ' ORDER BY id';
 		break;
 		case 'producer':
 		        $sqlord = ' ORDER BY producer';
@@ -97,7 +97,7 @@ function NetDevSearch($order='name,asc', $search=NULL, $sqlskey='AND')
 
 	$netdevlist = $DB->GetAll('SELECT DISTINCT d.id, d.name, d.location, d.description, d.producer, 
 				d.model, d.serialnumber, d.ports,
-                		(SELECT COUNT(*) FROM nodes WHERE netdev = d.id AND ownerid > 0)
+                		(SELECT COUNT(*) FROM vnodes WHERE netdev = d.id AND ownerid > 0)
 	            		+ (SELECT COUNT(*) FROM netlinks WHERE src = d.id OR dst = d.id) AS takenports
 	        		FROM netdevices d'
 				.(isset($nodes) ? ' LEFT JOIN vnodes n ON (netdev = d.id AND ownerid = 0)' : '')
@@ -166,7 +166,7 @@ if(isset($_GET['search']))
 		$SMARTY->assign('netdevlist', $netdevlist);
 		$SMARTY->assign('listdata', $listdata);
 
-		$SMARTY->display('netdevsearchresults.html');
+		$SMARTY->display('netdev/netdevsearchresults.html');
 	}
 }
 else
@@ -176,7 +176,7 @@ else
 	$SESSION->remove('ndlsp');
 	
 	$SMARTY->assign('k',$k);
-	$SMARTY->display('netdevsearch.html');
+	$SMARTY->display('netdev/netdevsearch.html');
 }
 
 ?>

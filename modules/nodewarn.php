@@ -68,7 +68,7 @@ if(isset($setwarnings['mnodeid']))
 	if (!empty($nodes)) {
 		$LMS->NodeSetWarn($nodes, $warnon ? 1 : 0);
 		if ($message) {
-			$cids = $DB->GetCol('SELECT DISTINCT n.ownerid FROM nodes n WHERE n.id IN (' . implode(',', $nodes) . ')');
+			$cids = $DB->GetCol('SELECT DISTINCT n.ownerid FROM vnodes n WHERE n.id IN (' . implode(',', $nodes) . ')');
 			$DB->Execute('UPDATE customers SET message = ? WHERE id IN 
 				(' . implode(',', $cids) . ')', array($message));
 			if ($SYSLOG) {
@@ -84,6 +84,8 @@ if(isset($setwarnings['mnodeid']))
 		}
 		$data = array('nodes' => $nodes);
 		$LMS->ExecHook('node_warn_after', $data);
+
+		$LMS->executeHook('nodewarn_after_submit', $data);
 	}
 
 	$SESSION->save('warnmessage', $message);
@@ -103,6 +105,8 @@ if (!empty($_POST['marks']))
 	if (!empty($nodes)) {
 		$data = array('nodes' => $nodes, 'warning' => $warning);
 		$LMS->ExecHook('node_warn_after', $data);
+
+		$LMS->executeHook('nodewarn_after_submit', $data);
 	}
 
 	$SESSION->redirect('?'.$SESSION->get('backto'));
@@ -114,10 +118,12 @@ if($backid && $LMS->CustomerExists($backid))
 {
 	$res = $LMS->NodeSetWarnU($backid, $warning);
 
-    if ($res) {
-        $data = array('ownerid' => $backid, 'warning' => $warning);
-        $LMS->ExecHook('node_warn_after', $data);
-    }
+	if ($res) {
+		$data = array('ownerid' => $backid, 'warning' => $warning);
+		$LMS->ExecHook('node_warn_after', $data);
+
+		$LMS->executeHook('nodewarn_after_submit', $data);
+	}
 
 	$redir = $SESSION->get('backto');
 	if($SESSION->get('lastmodule')=='customersearch')
@@ -132,10 +138,12 @@ if($backid && $LMS->NodeExists($backid))
 {
     $res = $LMS->NodeSwitchWarn($backid);
 
-    if ($res) {
-        $data = array('nodeid' => $backid);
-        $LMS->ExecHook('node_warn_after', $data);
-    }
+	if ($res) {
+		$data = array('nodeid' => $backid);
+		$LMS->ExecHook('node_warn_after', $data);
+
+		$LMS->executeHook('nodewarn_after_submit', $data);
+	}
 
 	if(!empty($_GET['shortlist'])) {
 	    header('Location: ?m=nodelistshort&id='.$LMS->GetNodeOwner($backid));
@@ -163,6 +171,6 @@ $SMARTY->assign('warnmessage', $SESSION->get('warnmessage'));
 $SMARTY->assign('warnon', $SESSION->get('warnon'));
 $SMARTY->assign('warnoff', $SESSION->get('warnoff'));
 $SMARTY->assign('nodelist',$nodelist);
-$SMARTY->display('nodewarnings.html');
+$SMARTY->display('node/nodewarnings.html');
 
 ?>

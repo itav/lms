@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2015 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -21,7 +21,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  *  USA.
  *
- *  $Id: common.php,v 1.130 2012/01/02 11:01:28 alec Exp $
+ *  $Id$
  */
 
 // Common functions, that making it in class would be nonsense :)
@@ -364,15 +364,15 @@ function writesyslog($message,$type)
 // Creates directories tree
 function rmkdir($dir)
 {
-	if($dir[0]!='/*')
-		$dir = getcwd() . '/' . $dir;
-	$directories = explode('/',$dir);
+	if($dir[0]!= DIRECTORY_SEPARATOR)
+		$dir = getcwd() . DIRECTORY_SEPARATOR . $dir;
+	$directories = explode(DIRECTORY_SEPARATOR, $dir);
 	$makedirs = 0;
 	for($i=1;$i<sizeof($directories);$i++)
 	{
 		$cdir = '';
 		for($j=1;$j<$i+1;$j++)
-			$cdir .= '/'.$directories[$j];
+			$cdir .= DIRECTORY_SEPARATOR . $directories[$j];
 		if(!is_dir($cdir))
 		{
 			$result = mkdir($cdir,0777);
@@ -388,7 +388,7 @@ function rmkdir($dir)
 // Deletes directory and all subdirs and files in it
 function rrmdir($dir)
 {
-    $files = glob($dir . '/', GLOB_MARK);
+    $files = glob($dir . DIRECTORY_SEPARATOR . '*', GLOB_MARK);
     foreach ($files as $file) {
         if (is_dir($file))
             rrmdir($file);
@@ -467,7 +467,7 @@ function get_producer($mac) {
 	if (!$mac)
 		return '';
 
-	$maclines = @file(LIB_DIR . '/ethercodes.txt', FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
+	$maclines = @file(LIB_DIR . DIRECTORY_SEPARATOR . 'ethercodes.txt', FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
 	if (!empty($maclines))
 		foreach ($maclines as $line) {
 			list ($prefix, $producer) = explode(':', $line);
@@ -545,7 +545,7 @@ if (!function_exists('bcmod'))
 	while ( strlen($x) );
 	    return (int)$mod;
     }
-}					     
+}
 
 function docnumber($number=NULL, $template=NULL, $time=NULL, $ext_num='')
 {
@@ -557,11 +557,17 @@ function docnumber($number=NULL, $template=NULL, $time=NULL, $ext_num='')
 	$result = str_replace('%I', $ext_num, $template);
 
 	// main document number
-	$result = preg_replace_callback(
-		'/%(\\d*)N/',
+	// code for php < 5.3
+/*
+	$result = preg_replace_callback('/%(\\d*)N/',
 		create_function('$m', "return sprintf(\"%0\$m[1]d\", $number);"),
 		$result);
-	
+*/
+	$result = preg_replace_callback('/%(\\d*)N/',
+		function ($m) use ($number) {
+			return sprintf('%0' . $m[1] . 'd', $number);
+		}, $result);
+
 	// time conversion specifiers
 	return strftime($result, $time);
 }
@@ -767,7 +773,7 @@ function register_plugin($handle, $plugin)
         $PLUGINS[$handle][] = $plugin;
 }
 
-function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $orientation='P', $margins=array(5, 10, 5, 10), $save=false, $copy=false)
+function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $orientation='P', $margins=array(5, 10, 5, 10), $save=false, $copy=false, $md5sum = '')
 {
 	global $layout, $DB;
 
@@ -775,7 +781,7 @@ function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $o
 		if (!is_array($margins))
 			$margins = array(5, 10, 5, 10); /* default */
 
-	$html2pdf = new HTML2PDF($orientation, 'A4', 'en', true, 'UTF-8', $margins);
+	$html2pdf = new LMSHTML2PDF($orientation, 'A4', 'en', true, 'UTF-8', $margins);
 	/* disable font subsetting to improve performance */
 	$html2pdf->pdf->setFontSubsetting(false);
 
@@ -785,7 +791,7 @@ function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $o
 			WHERE d.id = ?', array($id));
 	}
 
-	$html2pdf->pdf->SetProducer('LMS Developers');
+	$html2pdf->pdf->SetAuthor('LMS Developers');
 	$html2pdf->pdf->SetCreator('LMS '.$layout['lmsv']);
 	if ($info)
 		$html2pdf->pdf->SetAuthor($info['name']);
@@ -795,11 +801,6 @@ function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $o
 		$html2pdf->pdf->SetTitle($title);
 
 	$html2pdf->pdf->SetDisplayMode('fullpage', 'SinglePage', 'UseNone');
-	$html2pdf->AddFont('arial', '', 'arial.php');
-	$html2pdf->AddFont('arial', 'B', 'arialb.php');
-	$html2pdf->AddFont('arial', 'I', 'ariali.php');
-	$html2pdf->AddFont('arial', 'BI', 'arialbi.php');
-	$html2pdf->AddFont('times', '', 'times.php');
 
 	/* if tidy extension is loaded we repair html content */
 	if (extension_loaded('tidy')) {
@@ -862,8 +863,8 @@ function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $o
 		);
 
 		/* setup your cert & key file */
-		$cert = 'file://'.LIB_DIR.'/tcpdf/config/lms.cert';
-		$key = 'file://'.LIB_DIR.'/tcpdf/config/lms.key';
+		$cert = 'file://' . LIB_DIR . DIRECTORY_SEPARATOR . 'tcpdf' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'lms.cert';
+		$key = 'file://' . LIB_DIR . DIRECTORY_SEPARATOR . 'tcpdf' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'lms.key';
 
 		/* set document digital signature & protection */
 		if (file_exists($cert) && file_exists($key)) {
@@ -872,6 +873,10 @@ function html2pdf($content, $subject=NULL, $title=NULL, $type=NULL, $id=NULL, $o
 	}
 
 	$html2pdf->pdf->SetProtection(array('modify', 'annot-forms', 'fill-forms', 'extract', 'assemble'), '', PASSWORD_CHANGEME, '1');
+
+        // cache pdf file
+	if($md5sum)
+		$html2pdf->Output(DOC_DIR . DIRECTORY_SEPARATOR . substr($md5sum,0,2) . DIRECTORY_SEPARATOR . $md5sum.'.pdf', 'F');
 
 	if ($save) {
 		if (function_exists('mb_convert_encoding'))
@@ -903,6 +908,56 @@ function access_denied() {
 
 function check_date($date) {
 	return preg_match('/^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/', $date);
+}
+
+function getdir($pwd = './', $pattern = '^.*$') {
+	$files = array();
+	if ($handle = @opendir($pwd)) {
+		while (($file = readdir($handle)) !== FALSE)
+			if (preg_match('/' . $pattern . '/', $file))
+				$files[] = $file;
+		closedir($handle);
+	}
+	return $files;
+}
+
+function iban_account($country, $length, $id, $account = NULL) {
+	if ($account === NULL) {
+		$DB = LMSDB::getInstance();
+		$account = $DB->GetOne('SELECT account FROM divisions WHERE id IN (SELECT divisionid
+			FROM customers WHERE id = ?)', array($id));
+	}
+
+	if (!empty($account)) {
+		$acclen = strlen($account);
+
+		if ($acclen <= $length - 6) {
+			$format = '%0' . ($length - 2 - $acclen) . 'd';
+			$account .= sprintf($format, $id);
+			$checkaccount = $account . $country . '00';
+			$numericaccount = '';
+			for ($i = 0; $i < strlen($checkaccount); $i++) {
+				$ch = strtoupper($checkaccount[$i]);
+				$numericaccount .= ctype_alpha($ch) ? ord($ch) - 55 : $ch;
+			}
+			$account = sprintf('%02d', 98 - bcmod($numericaccount, 97)) . $account;
+		}
+	}
+
+	return $account;
+}
+
+function iban_check_account($country, $length, $account) {
+	$account = preg_replace('/[^a-zA-Z0-9]/', '', $account);
+	if (strlen($account) != $length)
+		return false;
+	$checkaccount = substr($account, 2, $length - 2) . $country. '00';
+	$numericaccount = '';
+	for ($i = 0; $i < strlen($checkaccount); $i++) {
+		$ch = strtoupper($checkaccount[$i]);
+		$numericaccount .= ctype_alpha($ch) ? ord($ch) - 55 : $ch;
+	}
+	return sprintf('%02d', 98 - bcmod($numericaccount, 97)) == substr($account, 0, 2);
 }
 
 ?>

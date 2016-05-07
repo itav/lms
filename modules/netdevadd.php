@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -40,8 +40,8 @@ if(isset($_POST['netdev']))
 
 	if($netdevdata['name'] == '')
 		$error['name'] = trans('Device name is required!');
-	elseif(strlen($netdevdata['name'])>32)
-		$error['name'] = trans('Device name is too long (max.32 characters)!');
+	elseif (strlen($netdevdata['name']) > 60)
+		$error['name'] = trans('Specified name is too long (max. $a characters)!', '60');
 
 	$netdevdata['purchasetime'] = 0;
 	if($netdevdata['purchasedate'] != '') 
@@ -72,6 +72,18 @@ if(isset($_POST['netdev']))
 		$error['purchasedate'] = trans('Purchase date cannot be empty when guarantee period is set!');
 	}
 
+
+	if ($netdevdata['invprojectid'] == '-1') { // nowy projekt
+		if (!strlen(trim($netdevdata['projectname']))) {
+		 $error['projectname'] = trans('Project name is required');
+		}
+		$l = $DB->GetOne("SELECT * FROM invprojects WHERE name=? AND type<>?",
+			array($netdevdata['projectname'], INV_PROJECT_SYSTEM));
+		if (sizeof($l)>0) {
+			$error['projectname'] = trans('Project with that name already exists');
+		}
+	}
+
     if(!$error)
     {
 		if($netdevdata['guaranteeperiod'] == -1)
@@ -87,7 +99,39 @@ if(isset($_POST['netdev']))
             $netdevdata['location_street'] = null;
             $netdevdata['location_house'] = null;
             $netdevdata['location_flat'] = null;
-        }
+	}
+	$ipi = $netdevdata['invprojectid'];
+	if ($ipi == '-1') {
+		$DB->BeginTrans();
+		$DB->Execute("INSERT INTO invprojects (name, type) VALUES (?, ?)",
+			array($netdevdata['projectname'], INV_PROJECT_REGULAR));
+		$ipi = $DB->GetLastInsertID('invprojects');
+		$DB->CommitTrans();
+	} 
+	if ($netdevdata['invprojectid'] == '-1' || intval($ipi)>0)
+		$netdevdata['invprojectid'] = intval($ipi);
+	else
+		$netdevdata['invprojectid'] = NULL;
+	if ($netdevdata['netnodeid']=="-1") {
+		$netdevdata['netnodeid']=NULL;
+	}
+	else {
+		/* dziedziczenie lokalizacji */
+		$dev = $DB->GetRow("SELECT * FROM netnodes WHERE id = ?", array($netdevdata['netnodeid']));
+		if ($dev) {
+			if (!strlen($netdevdata['location'])) {
+				$netdevdata['location'] = $dev['location'];
+				$netdevdata['location_city'] = $dev['location_city'];
+				$netdevdata['location_street'] = $dev['location_street'];
+				$netdevdata['location_house'] = $dev['location_house'];
+				$netdevdata['location_flat'] = $dev['location_flat'];
+			}
+			if (!strlen($netdevdata['longitude']) || !strlen($netdevdata['longitude'])) {
+				$netdevdata['longitude'] = $dev['longitude'];
+				$netdevdata['latitude'] = $dev['latitude'];
+			}
+		}
+	}
 
 		$netdevid = $LMS->NetDevAdd($netdevdata);
 
@@ -96,16 +140,25 @@ if(isset($_POST['netdev']))
 
 	$SMARTY->assign('error', $error);
 	$SMARTY->assign('netdev', $netdevdata);
+} elseif (isset($_GET['id'])) {
+	$netdevdata = $LMS->GetNetDev($_GET['id']);
+	$netdevdata['name'] = trans('$a (clone)', $netdevdata['name']);
+	$netdevdata['teryt'] = !empty($netdevdata['location_city']) && !empty($netdevdata['location_street']);
+	$SMARTY->assign('netdev', $netdevdata);
 }
 
 $layout['pagetitle'] = trans('New Device');
 
 $SMARTY->assign('nastype', $LMS->GetNAStypes());
 
-if (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.ewx_support', false))) {
-	$SMARTY->assign('channels', $DB->GetAll('SELECT id, name FROM ewx_channels ORDER BY name'));
-}
+$nprojects = $DB->GetAll("SELECT * FROM invprojects WHERE type<>? ORDER BY name", array(INV_PROJECT_SYSTEM));
+$SMARTY->assign('NNprojects',$nprojects);
+$netnodes = $DB->GetAll("SELECT * FROM netnodes ORDER BY name");
+$SMARTY->assign('NNnodes',$netnodes);
 
-$SMARTY->display('netdevadd.html');
+if (ConfigHelper::checkConfig('phpui.ewx_support'))
+	$SMARTY->assign('channels', $DB->GetAll('SELECT id, name FROM ewx_channels ORDER BY name'));
+
+$SMARTY->display('netdev/netdevadd.html');
 
 ?>

@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -24,58 +24,106 @@
  *  $Id$
  */
 
+function select_customer($id)
+{
+    $JSResponse = new xajaxResponse();
+    $nodes_location = LMSDB::getInstance()->GetAll('SELECT n.id, n.name, location FROM vnodes n WHERE ownerid = ? ORDER BY n.name ASC', array($id));
+    $JSResponse->call('update_nodes_location', (array)$nodes_location);
+    return $JSResponse;
+}
+
+function getUsersForGroup($groupid) {
+	$JSResponse = new xajaxResponse();
+
+	if (empty($groupid))
+		$users = null;
+	else
+		$users = LMSDB::getInstance()->GetCol('SELECT u.id FROM users u
+			JOIN userassignments ua ON ua.userid = u.id
+			WHERE u.deleted = 0 AND u.access = 1 AND ua.usergroupid = ?',
+			array($groupid));
+
+	$JSResponse->call('update_user_selection', $users);
+
+	return $JSResponse;
+}
+
+$LMS->InitXajax();
+$LMS->RegisterXajaxFunction(array('select_customer', 'getUsersForGroup'));
+$SMARTY->assign('xajax', $LMS->RunXajax());
+
 if(isset($_POST['event']))
 {
 	$event = $_POST['event'];
-	
-	if(!($event['title'] || $event['description'] || $event['date']))
-	{
+
+	if (!isset($event['usergroup']))
+		$event['usergroup'] = 0;
+	$SESSION->save('eventgid', $event['usergroup']);
+
+	if (!($event['title'] || $event['description'] || $event['date']))
 		$SESSION->redirect('?m=eventlist');
-	}
-	
-	if($event['title'] == '')
-    		$error['title'] = trans('Event title is required!');
-	
-	if($event['date'] == '')
+
+	if ($event['title'] == '')
+		$error['title'] = trans('Event title is required!');
+	elseif(strlen($event['title']) > 255)
+		$error['title'] = trans('Event title is too long!');
+
+	if ($event['date'] == '')
 		$error['date'] = trans('You have to specify event day!');
-	else
-	{
-		list($year,$month, $day) = explode('/',$event['date']);
-		if(!checkdate($month,$day,$year))
+	else {
+		list ($year, $month, $day) = explode('/',$event['date']);
+		if (checkdate($month, $day, $year))
+			$date = mktime(0, 0, 0, $month, $day, $year);
+		else
 			$error['date'] = trans('Incorrect date format! Enter date in YYYY/MM/DD format!');
 	}
 
-	if(!$error)
-	{
-		$date = mktime(0, 0, 0, $month, $day, $year);
+	$enddate = 0;
+	if ($event['enddate'] != '') {
+		list ($year, $month, $day) = explode('/', $event['enddate']);
+		if (checkdate($month, $day, $year))
+			$enddate = mktime(0, 0, 0, $month, $day, $year);
+		else
+			$error['enddate'] = trans('Incorrect date format! Enter date in YYYY/MM/DD format!');
+	}
+
+	if ($enddate && $date > $enddate)
+		$error['enddate'] = trans('End time must not precede start time!');
+
+	if (!$error) {
 		$event['status'] = isset($event['status']) ? 1 : 0;
 		if (isset($event['customerid']))
 			$event['custid'] = $event['customerid'];
 		if ($event['custid'] == '')
 			$event['custid'] = 0;
+		$event['nodeid'] = (isset($event['customer_location'])||is_null($event['nodeid'])) ? NULL : $event['nodeid'];
 
-		$DB->Execute('INSERT INTO events (title, description, date, begintime, endtime, userid, private, customerid) 
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+		$DB->BeginTrans();
+
+		$DB->Execute('INSERT INTO events (title, description, date, begintime, enddate, endtime, userid, private, customerid, type, nodeid)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 				array($event['title'], 
 					$event['description'], 
 					$date, 
 					$event['begintime'], 
+					$enddate,
 					$event['endtime'], 
 					$AUTH->id, 
 					$event['status'], 
-					$event['custid']
+					intval($event['custid']),
+					$event['type'],
+					$event['nodeid']
 					));
-		
-		if(!empty($event['userlist']))
-		{
-			$id = $DB->GetOne('SELECT id FROM events WHERE title=? AND date=? AND begintime=? AND endtime=? AND userid=?',
-				array($event['title'], $date, $event['begintime'], $event['endtime'], $AUTH->id));
 
+		if (!empty($event['userlist'])) {
+			$id = $DB->GetLastInsertID('events');
 			foreach($event['userlist'] as $userid)
 				$DB->Execute('INSERT INTO eventassignments (eventid, userid) 
 					VALUES (?, ?)', array($id, $userid));
 		}
-		
+
+		$DB->CommitTrans();
+
 		if(!isset($event['reuse']))
 		{
 			$SESSION->redirect('?m=eventlist');
@@ -95,19 +143,24 @@ if(isset($_GET['day']) && isset($_GET['month']) && isset($_GET['year']))
 	$event['date'] = sprintf('%04d/%02d/%02d', $_GET['year'], $_GET['month'], $_GET['day']);
 }
 
+
 $layout['pagetitle'] = trans('New Event');
 
 $SESSION->save('backto', $_SERVER['QUERY_STRING']);
 
-$userlist = $LMS->GetUserNames();
+$usergroups = $DB->GetAll('SELECT id, name FROM usergroups');
+$userlist = $DB->GetAll('SELECT id, name FROM users
+	WHERE deleted = 0 AND access = 1 ORDER BY login ASC');
 
-if (!ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.big_networks', false)))
-{
+if (!isset($event['usergroup']))
+	$SESSION->restore('eventgid', $event['usergroup']);
+
+if (!ConfigHelper::checkConfig('phpui.big_networks'))
 	$SMARTY->assign('customerlist', $LMS->GetCustomerNames());
-}
 
+$SMARTY->assign('max_userlist_size', ConfigHelper::getConfig('phpui.event_max_userlist_size'));
 $SMARTY->assign('userlist', $userlist);
-$SMARTY->assign('userlistsize', sizeof($userlist));
+$SMARTY->assign('usergroups', $usergroups);
 $SMARTY->assign('error', $error);
 $SMARTY->assign('event', $event);
 $SMARTY->assign('hours', 
@@ -116,6 +169,6 @@ $SMARTY->assign('hours',
 		1200,1230,1300,1330,1400,1430,1500,1530,1600,1630,1700,1730,
 		1800,1830,1900,1930,2000,2030,2100,2130,2200,2230,2300,2330
 		));
-$SMARTY->display('eventadd.html');
+$SMARTY->display('event/eventadd.html');
 
 ?>

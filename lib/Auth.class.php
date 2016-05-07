@@ -3,7 +3,7 @@
 /*
  * LMS version 1.11-git
  *
- *  (C) Copyright 2001-2013 LMS Developers
+ *  (C) Copyright 2001-2016 LMS Developers
  *
  *  Please, see the doc/AUTHORS for more information about authors!
  *
@@ -115,6 +115,7 @@ class Auth {
 
 			$this->SESSION->save('session_id', $this->id);
 			$this->SESSION->save('session_login', $this->login);
+			$this->SESSION->restore_user_settings();
 			$this->SESSION->save('session_logname', $this->logname);
 			$this->SESSION->save('session_last', $this->last);
 			$this->SESSION->save('session_lastip', $this->lastip);
@@ -131,7 +132,7 @@ class Auth {
 						writesyslog('Bad password for ' . $this->login, LOG_WARNING);
 
 					$this->DB->Execute('UPDATE users SET failedlogindate=?, failedloginip=? WHERE id = ?',
-						array(time(), ip2long($this->ip), $this->id));
+						array(time(), $this->ip, $this->id));
 					if ($this->SYSLOG) {
 						$this->SYSLOG->NewTransaction('auth', $this->id);
 						$this->SYSLOG->AddMessage(SYSLOG_RES_USER, SYSLOG_OPER_USERLOGFAIL,
@@ -260,7 +261,7 @@ class Auth {
 			$this->islogged = ($this->passverified && $this->hostverified && $this->access && $this->accessfrom && $this->accessto);
 
 			if (ConfigHelper::checkValue(ConfigHelper::getConfig('phpui.use_swekey', false))) {
-				require_once(LIB_DIR . '/swekey/swekey_integration.php');
+				require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'swekey' . DIRECTORY_SEPARATOR . 'swekey_integration.php');
 				$SWEKEY = new SwekeyIntegration;
 				$this->swekeyauthenticated = $SWEKEY->IsSwekeyAuthenticated($this->swekeyid);
 				if (!$this->swekeyauthenticated && $this->swekeyid) {

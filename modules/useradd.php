@@ -29,6 +29,9 @@ $useradd = isset($_POST['useradd']) ? $_POST['useradd'] : array();
 
 if(sizeof($useradd))
 {
+    
+        $error = array();
+    
 	foreach($useradd as $key => $value)
 	    if (!is_array($value))
 		    $useradd[$key] = trim($value);
@@ -87,25 +90,16 @@ if(sizeof($useradd))
 	if($accessto < $accessfrom && $accessto != 0 && $accessfrom != 0)
 		$error['accessto'] = trans('Incorrect date range!');
 
-	// ACL mask...
-	$mask = '';
-	$outmask = '';
-
-	for($i=0;$i<256;$i++)
-		$mask .= '0';
-
-	foreach($access['table'] as $idx => $row)
-		if(isset($acl[$idx]))
-			if($acl[$idx]=='1')
-				$mask[255-$idx] = '1';
-
-	for($i=0;$i<256;$i += 4)
-		$outmask = $outmask . dechex(bindec(substr($mask,$i,4)));
-
-	$useradd['rights'] = preg_replace('/^[0]*(.*)$/','\1',$outmask);
+	$rights = isset($acl) ? array_keys($acl) : array();
+	$useradd['rights'] = implode(',', $rights);
 
 	if (!empty($useradd['ntype']))
 		$useradd['ntype'] = array_sum(array_map('intval', $useradd['ntype']));
+
+        $hook_data = $LMS->executeHook('useradd_validation_before_submit', array('useradd' => $useradd,
+                                                                                 'error' => $error));
+        $useradd = $hook_data['useradd'];
+        $error   = $hook_data['error'];
 
 	if (!$error) {
 		$useradd['accessfrom'] = $accessfrom;
@@ -128,6 +122,7 @@ if(sizeof($useradd))
 				}
 			}
 
+                $LMS->executeHook('useradd_after_submit', $id);
 		$SESSION->redirect('?m=userinfo&id='.$id);
 	} elseif (isset($_POST['selected']))
 		foreach ($_POST['selected'] as $idx => $name) {
@@ -137,17 +132,12 @@ if(sizeof($useradd))
 } else
 	$useradd['ntype'] = MSG_MAIL | MSG_SMS;
 
-foreach($access['table'] as $idx => $row)
-{
-	$row['id'] = $idx;
-	if(isset($acl[$idx]))
-		if($acl[$idx] == '1')
-			$row['enabled'] = TRUE;
-	$accesslist[] = $row;
-}
+$rights = isset($acl) ? array_keys($acl) : array();
+$access = AccessRights::getInstance();
+$accesslist = $access->getArray($rights);
 
 if($AUTH->nousers == TRUE)           // if there is no users
-    $accesslist[0][enabled]=1;       // then new users should have "full privileges" checked to make new installation more human error proof.
+	$accesslist['full_access']['enabled']=1;       // then new users should have "full privileges" checked to make new installation more human error proof.
 
 $layout['pagetitle'] = trans('New User');
 
@@ -156,6 +146,6 @@ $SMARTY->assign('error', $error);
 $SMARTY->assign('accesslist', $accesslist);
 $SMARTY->assign('available', $DB->GetAllByKey('SELECT id, name FROM customergroups ORDER BY name', 'id'));
 
-$SMARTY->display('useradd.html');
+$SMARTY->display('user/useradd.html');
 
 ?>
