@@ -28,6 +28,7 @@ CREATE TABLE users (
 	accessfrom integer DEFAULT 0 NOT NULL,
 	accessto integer DEFAULT 0 NOT NULL,
 	swekey_id varchar(32) DEFAULT NULL,
+	settings text NOT NULL DEFAULT '',
 	PRIMARY KEY (id),
 	UNIQUE (login, swekey_id)
 );
@@ -368,6 +369,7 @@ CREATE TABLE networks (
 	dhcpend varchar(16) 	DEFAULT '' NOT NULL,
 	disabled smallint 	DEFAULT 0 NOT NULL,
 	notes text		DEFAULT '' NOT NULL,
+	vlanid smallint DEFAULT NULL,
 	hostid integer NULL
 		REFERENCES hosts (id) ON DELETE SET NULL ON UPDATE CASCADE,
 	PRIMARY KEY (id),
@@ -375,6 +377,35 @@ CREATE TABLE networks (
 	CONSTRAINT networks_address_key UNIQUE (address, hostid)
 );
 CREATE INDEX networks_hostid_idx ON networks (hostid);
+
+/* ---------------------------------------------------
+ Structure of table "divisions"
+------------------------------------------------------*/
+DROP SEQUENCE IF EXISTS divisions_id_seq;
+CREATE SEQUENCE divisions_id_seq;
+DROP TABLE IF EXISTS divisions CASCADE;
+CREATE TABLE divisions (
+    	id 		integer 	NOT NULL DEFAULT nextval('divisions_id_seq'::text),
+	shortname 	varchar(255) 	NOT NULL DEFAULT '',
+	name 		text 		NOT NULL DEFAULT '',
+	address		varchar(255) 	NOT NULL DEFAULT '',
+	city		varchar(255) 	NOT NULL DEFAULT '',
+	zip		varchar(255) 	NOT NULL DEFAULT '',
+	countryid	integer		NOT NULL DEFAULT 0,
+	ten		varchar(16)	NOT NULL DEFAULT '',
+	regon		varchar(255)	NOT NULL DEFAULT '',
+	account		varchar(48) 	NOT NULL DEFAULT '',
+	inv_header 	text		NOT NULL DEFAULT '',
+	inv_footer 	text		NOT NULL DEFAULT '',
+	inv_author	text		NOT NULL DEFAULT '',
+	inv_cplace	text		NOT NULL DEFAULT '',
+	inv_paytime	smallint	DEFAULT NULL,
+	inv_paytype	smallint	DEFAULT NULL,
+	description 	text		NOT NULL DEFAULT '',
+	status 		smallint 	NOT NULL DEFAULT 0,
+	PRIMARY KEY (id),
+	UNIQUE (shortname)
+);
 
 /* ---------------------------------------------------
  Structure of table "invprojects" 
@@ -386,6 +417,8 @@ CREATE TABLE invprojects (
 	id integer DEFAULT nextval('invprojects_id_seq'::text) NOT NULL,
 	name varchar(255) NOT NULL,
 	type smallint DEFAULT 0,
+        divisionid integer DEFAULT NULL
+                REFERENCES divisions (id) ON DELETE SET NULL ON UPDATE CASCADE,
 	PRIMARY KEY(id)
 );
 
@@ -415,6 +448,8 @@ CREATE TABLE netnodes (
 	coowner varchar(255) DEFAULT '',
 	uip smallint DEFAULT 0,
 	miar smallint DEFAULT 0,
+	divisionid integer
+		REFERENCES divisions (id) ON DELETE SET NULL ON UPDATE CASCADE,
 	PRIMARY KEY(id)
 );
 
@@ -666,6 +701,8 @@ CREATE TABLE tariffs (
 	value numeric(9,2) 	DEFAULT 0 NOT NULL,
 	period smallint 	DEFAULT NULL,
 	taxid integer 		DEFAULT 0 NOT NULL,
+	numberplanid integer DEFAULT NULL
+		REFERENCES numberplans (id) ON DELETE CASCADE ON UPDATE CASCADE,
 	prodid varchar(255) 	DEFAULT '' NOT NULL,
 	uprate integer		DEFAULT 0 NOT NULL,
 	upceil integer		DEFAULT 0 NOT NULL,
@@ -897,7 +934,7 @@ DROP TABLE IF EXISTS invoicecontents CASCADE;
 CREATE TABLE invoicecontents (
 	docid integer 		DEFAULT 0 NOT NULL,
 	itemid smallint		DEFAULT 0 NOT NULL,
-	value numeric(9,2) 	DEFAULT 0 NOT NULL,
+	value numeric(12,5) 	DEFAULT 0 NOT NULL,
 	taxid integer 		DEFAULT 0 NOT NULL,
 	prodid varchar(255) 	DEFAULT '' NOT NULL,
 	content varchar(16) 	DEFAULT '' NOT NULL,
@@ -1705,35 +1742,6 @@ CREATE TABLE zipcodes (
 CREATE INDEX zipcodes_stateid_idx ON zipcodes (stateid);
 
 /* ---------------------------------------------------
- Structure of table "divisions"
-------------------------------------------------------*/
-DROP SEQUENCE IF EXISTS divisions_id_seq;
-CREATE SEQUENCE divisions_id_seq;
-DROP TABLE IF EXISTS divisions CASCADE;
-CREATE TABLE divisions (
-    	id 		integer 	NOT NULL DEFAULT nextval('divisions_id_seq'::text),
-	shortname 	varchar(255) 	NOT NULL DEFAULT '',
-	name 		text 		NOT NULL DEFAULT '',
-	address		varchar(255) 	NOT NULL DEFAULT '',
-	city		varchar(255) 	NOT NULL DEFAULT '',
-	zip		varchar(255) 	NOT NULL DEFAULT '',
-	countryid	integer		NOT NULL DEFAULT 0,
-	ten		varchar(16)	NOT NULL DEFAULT '',
-	regon		varchar(255)	NOT NULL DEFAULT '',
-	account		varchar(48) 	NOT NULL DEFAULT '',
-	inv_header 	text		NOT NULL DEFAULT '',
-	inv_footer 	text		NOT NULL DEFAULT '',
-	inv_author	text		NOT NULL DEFAULT '',
-	inv_cplace	text		NOT NULL DEFAULT '',
-	inv_paytime	smallint	DEFAULT NULL,
-	inv_paytype	smallint	DEFAULT NULL,
-	description 	text		NOT NULL DEFAULT '',
-	status 		smallint 	NOT NULL DEFAULT 0,
-	PRIMARY KEY (id),
-	UNIQUE (shortname)
-);
-
-/* ---------------------------------------------------
  Structure of table "voipaccounts"
 ------------------------------------------------------*/
 DROP SEQUENCE IF EXISTS voipaccounts_id_seq;
@@ -1941,6 +1949,21 @@ CREATE TABLE userassignments (
 CREATE INDEX userassignments_userid_idx ON userassignments (userid);
 
 /* ---------------------------------------------------
+ Structure of table passwdhistory
+------------------------------------------------------*/
+DROP SEQUENCE IF EXISTS passwdhistory_id_seq;
+CREATE SEQUENCE passwdhistory_id_seq;
+DROP TABLE IF EXISTS passwdhistory CASCADE;
+CREATE TABLE passwdhistory (
+	id integer DEFAULT nextval('passwdhistory_id_seq'::text) NOT NULL,
+	userid integer NOT NULL
+		REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE,
+	hash varchar(255) DEFAULT '' NOT NULL,
+	PRIMARY KEY (id)
+);
+CREATE INDEX passwdhistory_userid_idx ON passwdhistory (userid);
+
+/* ---------------------------------------------------
  Structure of table "up_rights" (Userpanel)
 ------------------------------------------------------*/
 DROP SEQUENCE IF EXISTS up_rights_id_seq;
@@ -2129,7 +2152,7 @@ SELECT st.ident AS woj, d.ident AS pow, b.ident AS gmi, b.type AS rodz_gmi,
 CREATE VIEW customermailsview AS
 		SELECT customerid, array_to_string(array_agg(contact), ',') AS email
 			FROM customercontacts
-			WHERE type = 8 AND contact <> ''
+			WHERE (type & 8) > 0 AND contact <> ''
 			GROUP BY customerid;
 
 /* ---------------------------------------------------
@@ -2168,6 +2191,8 @@ INSERT INTO nastypes (name) VALUES
 ('other');
 
 INSERT INTO uiconfig (section, var, value, description, disabled) VALUES
+('phpui', 'default_autosuggest_placement','bottom','',0),
+('phpui', 'autosuggest_max_length','40','',0),
 ('phpui', 'lang', '', '', 0),
 ('phpui', 'allow_from', '', '', 0),
 ('phpui', 'default_module', 'welcome', '', 0),
@@ -2233,6 +2258,13 @@ INSERT INTO uiconfig (section, var, value, description, disabled) VALUES
 ('phpui', 'hide_toolbar', 'false', '', 0),
 ('phpui', 'add_customer_group_required', 'false', '', 0),
 ('phpui', 'document_margins', '10,5,15,5', '', 0),
+('phpui', 'quicksearch_limit', '15', '', 0),
+('phpui', 'ping_type', '1', '', 0),
+('phpui', 'default_teryt_city', 'false', '', 0),
+('phpui', 'passwordhistory', 6, '', 0),
+('phpui', 'event_usergroup_selection_type', 'update', '', 0),
+('payments', 'date_format', '%Y/%m/%d', '', 0),
+('payments', 'default_unit_name', 'pcs.', '', 0),
 ('invoices', 'template_file', 'invoice.html', '', 0),
 ('invoices', 'content_type', 'text/html', '', 0),
 ('invoices', 'cnote_template_file', 'invoice.html', '', 0),
@@ -2256,8 +2288,8 @@ INSERT INTO uiconfig (section, var, value, description, disabled) VALUES
 ('mail', 'debug_email', '', '', 0),
 ('mail', 'smtp_host', '127.0.0.1', '', 0),
 ('mail', 'smtp_port', '25', '', 0),
-('mail', 'backend', 'pear', 9),
-('mail', 'smtp_secure', 'ssl', 10),
+('mail', 'backend', 'pear', '', 0),
+('mail', 'smtp_secure', 'ssl', '', 0),
 ('zones', 'hostmaster_mail', 'hostmaster.localhost', '', 0),
 ('zones', 'master_dns', 'localhost', '', 0),
 ('zones', 'slave_dns', 'localhost', '', 0),
@@ -2616,4 +2648,4 @@ INSERT INTO netdevicemodels (name, alternative_name, netdeviceproducerid) VALUES
 ('XR7', 'XR7 MINI PCI PCBA', 2),
 ('XR9', 'MINI PCI 600MW 900MHZ', 2);
 
-INSERT INTO dbinfo (keytype, keyvalue) VALUES ('dbversion', '2016011900');
+INSERT INTO dbinfo (keytype, keyvalue) VALUES ('dbversion', '2016040700');

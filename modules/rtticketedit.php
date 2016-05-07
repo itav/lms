@@ -104,7 +104,7 @@ if(isset($_POST['ticket']))
 	$ticketedit['ticketid'] = $ticket['ticketid'];
 
 	if(!count($ticketedit['categories']))
-		$error = true;
+		$error['categories'] = trans('You have to select category!');
 
 	if(($LMS->GetUserRightsRT($AUTH->id, $ticketedit['queueid']) & 2) != 2)
 		$error['queue'] = trans('You have no privileges to this queue!');
@@ -209,7 +209,7 @@ if(isset($_POST['ticket']))
 
 			if (ConfigHelper::checkConfig('phpui.helpdesk_customerinfo') && $ticketedit['customerid']) {
 				$info = $DB->GetRow('SELECT id, pin, '.$DB->Concat('UPPER(lastname)',"' '",'name').' AS customername,
-							address, zip, city FROM customers WHERE id = ?', array($ticketedit['customerid']));
+							address, zip, city FROM customeraddressview WHERE id = ?', array($ticketedit['customerid']));
 				$info['contacts'] = $DB->GetAll('SELECT contact, name, type FROM customercontacts
 					WHERE customerid = ?', array($ticketedit['customerid']));
 

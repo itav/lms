@@ -116,9 +116,7 @@
 			<B>{trans("Settlement date:")}</B>
 		</TD>
 		<TD WIDTH="99%" NOWRAP>
-			<div class="calendar">
-			<INPUT TYPE="TEXT" NAME="invoice[cdate]" VALUE="{$invoice.cdate|date_format:"%Y/%m/%d"}" SIZE="10" {tip text="Enter date of settlement in YYYY/MM/DD format (empty field means current date) or click to select it from calendar" trigger="cdate"}>
-			</div>
+			<INPUT TYPE="TEXT" NAME="invoice[cdate]" VALUE="{$invoice.cdate|date_format:"%Y/%m/%d"}" SIZE="10" {tip class="calendar" text="Enter date of settlement in YYYY/MM/DD format (empty field means current date) or click to select it from calendar" trigger="cdate"}>
 			{if $invoice.cdatewarning}
 			<INPUT TYPE="HIDDEN" NAME="invoice[cdatewarning]" VALUE="1">
 			{/if}
@@ -129,9 +127,7 @@
 			<B>{trans("Sale date:")}</B>
 		</TD>
 		<TD WIDTH="99%" NOWRAP>
-			<div class="calendar">
-			<INPUT TYPE="TEXT" NAME="invoice[sdate]" VALUE="{$invoice.sdate|date_format:"%Y/%m/%d"}" SIZE="10" {tip text="Enter date of sale in YYYY/MM/DD format (empty field means current date) or click to select it from calendar" trigger="sdate"}>
-			</div>
+			<INPUT TYPE="TEXT" NAME="invoice[sdate]" VALUE="{$invoice.sdate|date_format:"%Y/%m/%d"}" SIZE="10" {tip class="calendar" text="Enter date of sale in YYYY/MM/DD format (empty field means current date) or click to select it from calendar" trigger="sdate"}>
 		</TD>
 	</TR>
 	<TR>
@@ -185,7 +181,7 @@
                 <TD WIDTH="99%">
                         <B>{$customer.customername}</B>
                         &nbsp;&raquo;&nbsp; {$customer.address} &nbsp; {$customer.zip} {$customer.city}
-                        &nbsp;&raquo;&nbsp; {if $customer.balance < 0}<FONT class="red">{/if}{$customer.balance|money_format}{if $customer.balance < 0}</FONT>{/if}
+                        &nbsp;&raquo;&nbsp; {if $customer.balance < 0}<span class="red">{/if}{$customer.balance|money_format}{if $customer.balance < 0}</span>{/if}
                 </TD>
         </TR>
     </THEAD>
@@ -267,9 +263,7 @@
 	{foreachelse}
 	<TR>
 		<TD COLSPAN="9" ALIGN="CENTER">
-			<p>&nbsp;</p>
-			<p><B>{trans("Invoice have no items. Use form below for items addition.")}</B></p>
-			<p>&nbsp;</p>
+			<B>{trans("Invoice have no items. Use form below for items addition.")}</B>
 		</TD>
 	</TR>
 	{/foreach}
@@ -316,7 +310,7 @@
 		</TD>
 		<TD ALIGN="RIGHT">
 			<INPUT TYPE="text" NAME="count" SIZE="3" VALUE="1">
-			<INPUT TYPE="text" NAME="jm" SIZE="3" VALUE="{trans("pcs.")}">
+			<INPUT TYPE="text" NAME="jm" SIZE="3" VALUE="{trans(ConfigHelper::getConfig('payments.default_unit_name'))}">
 		</TD>
 		<TD ALIGN="RIGHT">
 			<INPUT TYPE="text" NAME="discount" SIZE="6" {tip text="Enter discount percentage or amount"}>

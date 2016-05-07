@@ -179,10 +179,12 @@ class LMS
      * @param mixed $hook_data Hook data
      * @return mixed Modfied hook data
      */
-    public function executeHook($hook_name, $hook_data = null)
-    {
-        return $this->plugin_manager->executeHook($hook_name, $hook_data);
-    }
+	public function executeHook($hook_name, $hook_data = null) {
+		if (!empty($this->plugin_manager))
+			return $this->plugin_manager->executeHook($hook_name, $hook_data);
+		else
+			return $hook_data;
+	}
 
     /*
      *  Database functions (backups)
@@ -438,6 +440,16 @@ class LMS
         return $manager->GetCashByID($id);
     }
 
+	public function CashImportParseFile($filename, $contents, $patterns) {
+		$manager = $this->getCashManager();
+		return $manager->CashImportParseFile($filename, $contents, $patterns);
+	}
+
+	public function CashImportCommit() {
+		$manager = $this->getCashManager();
+		return $manager->CashImportCommit();
+	}
+
     public function GetCustomerStatus($id)
     {
         $manager = $this->getCustomerManager();
@@ -468,10 +480,10 @@ class LMS
         return $manager->GetCustomerNodesAC($id);
     }
 
-    public function GetCustomerList($order = 'customername,asc', $state = null, $network = null, $customergroup = null, $search = null, $time = null, $sqlskey = 'AND', $nodegroup = null, $division = null, $limit = null, $offset = null, $count = false)
+    public function getCustomerList($params)
     {
         $manager = $this->getCustomerManager();
-        return $manager->getCustomerList($order, $state, $network, $customergroup, $search, $time, $sqlskey, $nodegroup, $division, $limit, $offset, $count);
+        return $manager->getCustomerList($params);
     }
 
     public function GetCustomerNodes($id, $count = null)
@@ -1668,53 +1680,52 @@ class LMS
 		$this->mail_object->SMTPAuth  = (!$auth ? ConfigHelper::getConfig('mail.smtp_auth_type', true) : $auth);
 		$this->mail_object->SMTPSecure  = (!$auth ? ConfigHelper::getConfig('mail.smtp_secure', true) : $auth);
 	    }
-
-	    $this->mail_object->set('X-Mailer', 'LMS-' . $this->_version);
+	    $this->mail_object->XMailer = 'LMS-' . $this->_version;
 	    if (!empty($_SERVER['REMOTE_ADDR']))
-		$this->mail_object->set('X-Remote-IP', $_SERVER['REMOTE_ADDR']);
+		$this->mail_object->addCustomHeader('X-Remote-IP: '.$_SERVER['REMOTE_ADDR']);
 	    if (isset($_SERVER['HTTP_USER_AGENT']))
-		$this->mail_object->set('X-HTTP-User-Agent', $_SERVER['HTTP_USER_AGENT']);
-	    $this->mail_object->set('Mime-Version', '1.0');
+		$this->mail_object->addCustomHeader('X-HTTP-User-Agent: '.$_SERVER['HTTP_USER_AGENT']);
+
+		if (isset($headers['X-LMS-Message-Item-Id']))
+			$this->mail_object->addCustomHeader('X-LMS-Message-Item-Id: ' . $headers['X-LMS-Message-Item-Id']);
+
+		if (isset($headers['Disposition-Notification-To']))
+			$this->mail_object->ConfirmReadingTo = $headers['Disposition-Notification-To'];
+		elseif (isset($headers['Return-Receipt-To']))
+			$this->mail_object->ConfirmReadingTo = $headers['Return-Receipt-To'];
+
+		$this->mail_object->Dsn = isset($headers['Delivery-Status-Notification-To']);
 
 	    preg_match('/^(.+) <([a-z0-9_\.-]+@[\da-z\.-]+\.[a-z\.]{2,6})>$/A', $headers['From'], $from);
 	    $this->mail_object->setFrom($from[2], trim($from[1], "\""));
+	    $this->mail_object->addReplyTo($headers['Reply-To']);
+	    $this->mail_object->CharSet = 'UTF-8';
 	    $this->mail_object->Subject = $headers['Subject'];
 
 	    $debug_email = ConfigHelper::getConfig('mail.debug_email');
 	    if (!empty($debug_email)) {
+                $this->mail_object->SMTPDebug = 2;
 		$recipients = ConfigHelper::getConfig('mail.debug_email');
 	    }
 
 	    if (empty($headers['Date']))
 		$headers['Date'] = date('r');
 
-	    if ($files || $headers['X-LMS-Format'] == 'html') {
-		$boundary = '-LMS-' . str_replace(' ', '.', microtime());
-		$this->mail_object->set('Content-Type', "multipart/mixed;\n  boundary=\"" . $boundary . '"');
+	    if ($files)
+	        while (list(, $chunk) = each($files))
+		    $this->mail_object->AddStringAttachment($chunk['data'],$chunk['filename'],'base64',$chunk['content_type']);
 
-		$this->mail_object->CharSet = 'UTF-8';
-
-		if ($files)
-		    while (list(, $chunk) = each($files))
-			$this->mail_object->AddAttachment($chunk['data'], $chunk['filename'],'base64', $chunk['content_type'], 'attachment');
-
-		if($headers['X-LMS-Format'] == 'html'){
-		    $this->mail_object->isHTML(true);
-		    $this->mail_object->AltBody = trans("To view the message, please use an HTML compatible email viewer");
-		    $this->mail_object->msgHTML($body);
-		}
-		else{
-		    $this->mail_object->isHTML(false);
-		    $this->mail_object->Body($body);
-		}
-	    }
-	    else {
-		$this->mail_object->set('Content-Type', 'text/plain; charset=UTF-8');
+	    if($headers['X-LMS-Format'] == 'html') {
+	        $this->mail_object->isHTML(true);
+	        $this->mail_object->AltBody = trans("To view the message, please use an HTML compatible email viewer");
+	        $this->mail_object->msgHTML($body);
+	    } else {
 		$this->mail_object->isHTML(false);
-		$this->mail_object->Body($body);
+		$this->mail_object->Body = $body;
 	    }
 
-	    $this->mail_object->addAddress($recipients);
+	    foreach(explode(",", $recipients) as $recipient)
+	    	$this->mail_object->addAddress($recipient);
 
 	    if(!$this->mail_object->Send()) {
 		return "Mailer Error: " . $this->mail_object->ErrorInfo;
@@ -1777,6 +1788,7 @@ class LMS
 
         // call external SMS handler(s)
         $data = $this->ExecHook('send_sms_before', $data);
+        $data = $this->executeHook('send_sms_before', $data);
 
 	if ($data['abort'])
 		if (is_string($data['result'])) {
@@ -1998,6 +2010,7 @@ class LMS
                     'to' => $number,
                     'message' => $message,
                     'from' => !empty($from) ? $from : 'ECO',
+                    'encoding' => 'utf-8',
                 );
                 $fast = ConfigHelper::getConfig('sms.fast');
                 if (!empty($fast))

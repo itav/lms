@@ -42,7 +42,8 @@ define('CSTATUS_INTERESTED', 1);
 define('CSTATUS_WAITING', 2);
 define('CSTATUS_CONNECTED', 3);
 define('CSTATUS_DISCONNECTED', 4);
-define('CSTATUS_LAST', CSTATUS_DISCONNECTED);
+define('CSTATUS_DEBT_COLLECTION', 5);
+define('CSTATUS_LAST', CSTATUS_DEBT_COLLECTION);
 
 $CSTATUSES = array(
 	CSTATUS_CONNECTED => array(
@@ -73,6 +74,13 @@ $CSTATUSES = array(
 		'img' => 'node_off.gif',
 		'alias' => 'disconnected'
 	),
+	CSTATUS_DEBT_COLLECTION => array(
+		'singularlabel' => trans('debt collection'),
+		'plurallabel' => trans('debt collection'),
+		'summarylabel' => trans('Debt Collection:<!summary>'),
+		'img' => 'money.gif',
+		'alias' => 'debtcollection'
+	),
 );
 
 // Config types
@@ -87,6 +95,7 @@ define('CONFIG_TYPE_NONE', 7);
 define('CONFIG_TYPE_RICHTEXT', 8);
 define('CONFIG_TYPE_MAIL_BACKEND', 9);
 define('CONFIG_TYPE_MAIL_SECURE', 10);
+define('CONFIG_TYPE_DATE_FORMAT', 11);
 
 $CONFIG_TYPES = array(
 	CONFIG_TYPE_AUTO => trans('- auto -'),
@@ -100,6 +109,7 @@ $CONFIG_TYPES = array(
 	CONFIG_TYPE_RICHTEXT => trans('visual editor'),
 	CONFIG_TYPE_MAIL_BACKEND => trans('mail backend'),
 	CONFIG_TYPE_MAIL_SECURE => trans('mail security protocol'),
+	CONFIG_TYPE_DATE_FORMAT => trans('date format'),
 );
 
 // Helpdesk ticket status
@@ -446,9 +456,9 @@ $NETELEMENTTYPES = array(
 );
 
 $NETELEMENTOWNERSHIPS = array(
-	0	=> 'węzeł własny',
-	1	=> 'węzeł współdzielony z innym podmiotem',
-	2	=> 'węzeł obcy',
+	0	=> 'Węzeł własny',
+	1	=> 'Węzeł współdzielony z innym podmiotem',
+	2	=> 'Węzeł obcy',
 );
 
 $USERPANEL_ID_TYPES = array(

@@ -139,7 +139,7 @@ function GetRecipients($filter, $type = MSG_MAIL) {
 			FROM assignments a
 			LEFT JOIN tariffs t ON (t.id = a.tariffid)
 			LEFT JOIN liabilities l ON (l.id = a.liabilityid AND a.period != ' . DISPOSABLE . ')
-			WHERE (a.datefrom <= ?NOW? OR a.datefrom = 0) AND (a.dateto > ?NOW? OR a.dateto = 0) 
+			WHERE a.datefrom <= ?NOW? AND (a.dateto > ?NOW? OR a.dateto = 0) 
 			GROUP BY a.customerid
 		) t ON (t.customerid = c.id) '
 		. (isset($mailtable) ? $mailtable : '')
@@ -362,8 +362,11 @@ if (isset($_POST['message'])) {
 
 		$message['body'] = str_replace("\r", '', $message['body']);
 
-		if($message['type'] == MSG_MAIL)
-			$message['body'] = wordwrap($message['body'],76,"\n");
+		if ($message['type'] == MSG_MAIL) {
+			$message['body'] = wordwrap($message['body'], 76, "\n");
+			$dsn_email = ConfigHelper::getConfig('mail.dsn_email', '', true);
+			$mdn_email = ConfigHelper::getConfig('mail.mdn_email', '', true);
+		}
 
 		$SMARTY->assign('message', $message);
 		$SMARTY->assign('recipcount', sizeof($recipients));
@@ -394,14 +397,18 @@ if (isset($_POST['message'])) {
 			else
 				$recipients[$key]['destination'] = explode(',', $row['phone']);
 
-			foreach ($recipients[$key]['destination'] as $destination)
+			$customerid = isset($row['id']) ? $row['id'] : 0;
+			foreach ($recipients[$key]['destination'] as $destination) {
 				$DB->Execute('INSERT INTO messageitems (messageid, customerid,
 					destination, status)
-					VALUES (?, ?, ?, ?)', array(
-						$msgid,
-						isset($row['id']) ? $row['id'] : 0,
-						$destination, MSG_NEW,
-					));
+					VALUES (?, ?, ?, ?)', array($msgid, $customerid, $destination, MSG_NEW));
+				if ($message['type'] == MSG_MAIL && (!empty($dsn_email) || !empty($mdn_email))) {
+					$msgitemid = $DB->GetLastInsertID('messageitems');
+					if (!isset($msgitems[$customerid]))
+						$msgitems[$customerid] = array();
+					$msgitems[$customerid][$destination] = $msgitemid;
+				}
+			}
 		}
 
 		$DB->CommitTrans();
@@ -415,13 +422,21 @@ if (isset($_POST['message'])) {
 			if(!empty($debug_email))
 				echo '<B>'.trans('Warning! Debug mode (using address $a).',ConfigHelper::getConfig('mail.debug_email')).'</B><BR>';
 
-			$headers['From'] = qp_encode($message['from']) . ' <' . $message['sender'] . '>';
+			$headers['From'] = '"' . qp_encode($message['from']) . '"' . ' <' . $message['sender'] . '>';
 			$headers['Subject'] = $message['subject'];
 			$headers['Reply-To'] = $headers['From'];
 			if (isset($message['copytosender']))
 				$headers['Cc'] = $headers['From'];
 			if (!empty($message['wysiwyg']))
 				$headers['X-LMS-Format'] = 'html';
+			if (!empty($dsn_email)) {
+				$headers['From'] = $dsn_email;
+				$headers['Delivery-Status-Notification-To'] = true;
+			}
+			if (!empty($mdn_email)) {
+				$headers['Return-Receipt-To'] = $mdn_email;
+				$headers['Disposition-Notification-To'] = $mdn_email;
+			}
 		} elseif ($message['type'] != MSG_WWW) {
 			$debug_phone = ConfigHelper::getConfig('sms.debug_phone');
 			if (!empty($debug_phone))
@@ -432,6 +447,8 @@ if (isset($_POST['message'])) {
 			$body = $message['body'];
 
 			BodyVars($body, $row);
+
+			$customerid = isset($row['id']) ? $row['id'] : 0;
 
 			foreach ($row['destination'] as $destination) {
 				$orig_destination = $destination;
@@ -455,6 +472,8 @@ if (isset($_POST['message'])) {
 				if ($message['type'] == MSG_MAIL) {
 					if (isset($message['copytosender']))
 						$destination .= ',' . $message['sender'];
+					if (!empty($dsn_email) || !empty($mdn_email))
+						$headers['X-LMS-Message-Item-Id'] = $msgitems[$customerid][$orig_destination];
 					$result = $LMS->SendMail($destination, $headers, $body, $files);
 				} elseif ($message['type'] == MSG_WWW || $message['type'] == MSG_USERPANEL || $message['type'] == MSG_USERPANEL_URGENT)
 					$result = MSG_SENT;
@@ -477,8 +496,7 @@ if (isset($_POST['message'])) {
 						array(
 							is_int($result) ? $result : MSG_ERROR,
 							is_int($result) ? null : $result,
-							$msgid,
-							isset($row['id']) ? $row['id'] : 0,
+							$msgid, $customerid,
 							$orig_destination,
 						));
 			}

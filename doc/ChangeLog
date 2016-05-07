@@ -2,6 +2,17 @@ $Id$
 
 version ?.??.?? (????-??-??):
 
+  - added support for DSN and MDN in lms-notify.php script [chilan]
+  - smarty installation is provided by composer from now [chilan]
+  - added support for sms notifications in timetable type [chilan]
+  - show event summary for all found events at bottom [chilan]
+  - unification of cash import code as preparation for cashimport backend
+    scripts' usage [chilan]
+  - added bin/lms-cashimport.php script as universal backend for
+    loading cash import file contents from specified files [chilan]
+
+version 1.11.20 (2016-04-19):
+
   - bclean: added responsive menu [kyob]
   - www, userpanel messages are always sent initially and userpanel messages are
     marked as delivered after message read confirmation [chilan]
@@ -31,6 +42,58 @@ version ?.??.?? (????-??-??):
   - added column with type in uiconfig, and configuration is validated by this type [pjona]
   - function $LMS->CheckOption() takes a '$type' as the first parameter [pjona]
   - lms-sendinvoices.php can send additional file as a separate attachment [pjona]
+  - added support for second mail library (PHPMailer), see mail.backend option [wawryk]
+  - lms-payments.php: added option which allows to define date format [pjona]
+  - node list: added support for investment project selection [chilan]
+  - node list: added support for 'without tariff' status [chilan]
+  - added phpui.quicksearch_limit config variable with 15 as default [chilan]
+  - fixed calculation of brutto value basing on netto value
+    (fixes https://github.com/lmsgit/lms/issues/559) [chilan]
+  - added payments.default_unit_name config variable with "pcs." as default [pjona]
+  - customer and user notifications about still opened events [chilan]
+  - fixed multidays event presentation in event list when end time is 00:00 [chilan]
+  - remember all form settings between user sessions [chilan]
+  - 'unblock' channel support added to lms-notify.php backend script [chilan]
+  - fixed radio sectors visualisation on network map - azimuth points angle related
+    to north direction [chilan]
+  - add filters (with nodes, without nodes, active nodes, e-invoice) in customerlist [wawryk]
+  - add filters (online, without terryt) in nodelist and show info on welcome [wawryk]
+  - bumped used smarty version to 3.1.29 (LMS Plus users should not use the newest
+    lms master version for the moment) [chilan]
+  - allow to view and search node sessions [chilan]
+  - allow to use web browser mechanism to open new invoice/receipt/note form in customer
+    balance box [chilan]
+  - invoices.disable_protection allows to disable modify and copy protection in
+    tcpdf invoice [chilan]
+  - added possibility to add note to events by technician without timetable_access [wawryk]
+  - added showOrHide function to boxes on welcome page [wawryk]
+  - added autolinker in rttickets [wawryk]
+  - copy ip address to clipboard after click on ip.gif image [wawryk]
+  - added clone option to promotions and promotion schemas [wawryk]
+  - added tcpdf support for debit note [pjona]
+  - added documents cacheing [wawryk]
+  - added support for sending debit notes by mail [chilan]
+  - allow to assign numberplans to tariffs [chilan]
+  - receiptadd: we show also not accounted debit notes [pjona]
+  - separation force_ssl for UI and Userpanel [pjona]
+  - added node location info in network devices connected nodes list [chilan]
+  - added support for network searching [kosa/chilan]
+  - added support for different placements of suggestion window
+    (phpui.default_autosuggest_placement) [kosa/chilan]
+  - suggestion window adjust its width to displayed data
+    (phpui.autosuggest_max_length) [kosa/chilan]
+  - improved performance of default type detection for config variables [chilan]
+  - redesigned multiselect window to be more useable [kosa/chilan]
+  - networks: added support for vlan ids [kosa/chilan]
+  - added support for userpanel_<module_name>_<function_name>_before_module_display
+    hooks [chilan]
+  - allow to add custom links in userpanel customer balance list [chilan]
+  - workaround postgresql array_agg multi function existence during db schema updates [chilan]
+  - added delivery status notification support for mail messages [chilan]
+  - invoice sends are optionally confirmed by new messages [chilan]
+  - added mail disposition notification support for mail messages [chilan]
+  - added support for DSN, MDN and Reply-To header in phpmailer backend
+    (DSN required separated patch for PHPMailer code) [chilan]
 
 version 1.11.19 (2015-12-21):
 

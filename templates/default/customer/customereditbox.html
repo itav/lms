@@ -327,9 +327,10 @@
 			<fieldset style="width: 1%;" class="nobr">
 				<legend class="bold"><IMG src="img/phone.gif" alt=""> {trans("Contact phones")}</legend>
 				<table>
-					{foreach from=$customerinfo.contacts item=item key=key}
+					{foreach $customerinfo.contacts as $key => $item}
 					<TR id="contact{$key}">
 						<TD>
+							{if !$item@first}<HR>{/if}
 							<INPUT type="text" size="16" value="{$item.phone}" name="customerdata[contacts][{$key}][phone]" {tip text="Enter contact phone" trigger="contact`$key`"}>
 							<label>
 								<INPUT type="checkbox" value="{$smarty.const.CONTACT_MOBILE}" name="customerdata[contacts][{$key}][type][]"{if ($item.type & $smarty.const.CONTACT_MOBILE)} checked{/if}>
@@ -354,8 +355,8 @@
 					{/foreach}
 					<TR>
 						<TD>
-							<INPUT type="hidden" id="contactscount" value="{$item@total}">
-							<A href="javascript: newcontact()">{trans("Add contact field")} &raquo;&raquo;&raquo;</A>
+							<INPUT type="hidden" id="contactscount" value="{count($customerinfo.contacts)}">
+							<A href="javascript:newcontact()">{trans("Add contact field")} &raquo;&raquo;&raquo;</A>
 						</TD>
 					</TR>
 				</table>
@@ -368,9 +369,10 @@
 			<fieldset style="width: 1%;" class="nobr">
 				<legend class="bold"><IMG src="img/mail.gif" alt=""> {trans("Email addresses")}</legend>
 				<table>
-					{foreach from=$customerinfo.emails item=item key=key}
+					{foreach $customerinfo.emails as $key => $item}
 					<TR id="email{$key}">
 						<TD>
+							{if !$item@first}<HR>{/if}
 							<INPUT type="text" size="23" value="{$item.email}" name="customerdata[emails][{$key}][email]" {tip text="Enter e-mail address (optional)" trigger="email`$key`"}>
 							<label {tip text="Check if sent electronic invoices on this email"}>
 								<INPUT TYPE="checkbox" value="{$smarty.const.CONTACT_INVOICES}" name="customerdata[emails][{$key}][type][]"{if ($item.type & $smarty.const.CONTACT_INVOICES)} checked{/if}>
@@ -391,8 +393,8 @@
 					{/foreach}
 					<TR>
 						<TD>
-							<INPUT type="hidden" id="emailscount" value="{$item@total}">
-							<A href="javascript: newemail()">{trans("Add contact field")} &raquo;&raquo;&raquo;</A>
+							<INPUT type="hidden" id="emailscount" value="{count($customerinfo.emails)}">
+							<A href="javascript:newemail()">{trans("Add contact field")} &raquo;&raquo;&raquo;</A>
 						</TD>
 					</TR>
 				</table>
@@ -408,6 +410,7 @@
 					{foreach $customerinfo.accounts as $key => $item}
 					<TR id="account{$key}">
 						<TD>
+							{if !$item@first}<HR>{/if}
 							<INPUT type="text" size="50" value="{$item.account}" name="customerdata[accounts][{$key}][account]" {tip text="Enter bank account (optional)" trigger="account`$key`"}>
 							<label {tip text="Check if bank account should be visible on invoice"}>
 								<INPUT TYPE="checkbox" value="{$smarty.const.CONTACT_INVOICES}" name="customerdata[accounts][{$key}][type][]"{if ($item.type & $smarty.const.CONTACT_INVOICES)} checked{/if}>
@@ -424,8 +427,8 @@
 					{/foreach}
 					<TR>
 						<TD>
-							<INPUT type="hidden" id="accountscount" value="{$item@total}">
-							<A href="javascript: newaccount()">{trans("Add contact field")} &raquo;&raquo;&raquo;</A>
+							<INPUT type="hidden" id="accountscount" value="{count($customerinfo.accounts)}">
+							<A href="javascript:newaccount()">{trans("Add contact field")} &raquo;&raquo;&raquo;</A>
 						</TD>
 					</TR>
 				</table>
@@ -465,7 +468,7 @@
 		</TD>
 		<TD style="width: 98%;">
 			<INPUT type="text" name="customerdata[pin]" value="{if $customerinfo.pin}{$customerinfo.pin}{/if}" size="6" {tip text="Enter 4 to 6 digits PIN number (optional)" trigger="pin"}>&nbsp;
-			<A href="javascript: randomize()" {tip text="Generate PIN"}>&raquo;&raquo;&raquo;</A>
+			<A href="javascript:randomize()" {tip text="Generate PIN"}>&raquo;&raquo;&raquo;</A>
 		</TD>
 	</TR>
 	<TR>
@@ -553,9 +556,7 @@
 						{trans("Cutoff suspending:")}
 					</TD>
 					<TD>
-						<div class="calendar">
-						<INPUT type="text" name="customerdata[cutoffstop]" id="cutoffstop" {if $customerinfo.cutoffstop}value="{$customerinfo.cutoffstop}"{/if} size="10" {tip text="Select date of cutoff suspending (optional)" trigger="cutoffstop"}>
-						</div>
+						<INPUT type="text" name="customerdata[cutoffstop]" id="cutoffstop" {if $customerinfo.cutoffstop}value="{$customerinfo.cutoffstop}"{/if} size="10" {tip class="calendar" text="Select date of cutoff suspending (optional)" trigger="cutoffstop"}>
 					</TD>
 				</TR>
 			</TABLE>

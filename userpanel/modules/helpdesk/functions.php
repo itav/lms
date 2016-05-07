@@ -168,10 +168,6 @@ function module_main()
 					$ticket['mailfrom']
 				));
 
-		foreach(explode(',', $ticket['categories']) as $catid)
-			$DB->Execute('INSERT INTO rtticketcategories (ticketid, categoryid) VALUES (?, ?)',
-				array($id, $catid));
-
 		if (!empty($files) && ConfigHelper::getConfig('rt.mail_dir')) {
 			$msgid = $DB->GetLastInsertID('rtmessages');
 			$dir = ConfigHelper::getConfig('rt.mail_dir') . sprintf('/%06d/%06d', $id, $msgid);
@@ -184,6 +180,10 @@ function module_main()
 						VALUES (?,?,?)', array($msgid, $file['name'], $file['type']));
 			}
 		}
+
+		foreach(explode(',', $ticket['categories']) as $catid)
+			$DB->Execute('INSERT INTO rtticketcategories (ticketid, categoryid) VALUES (?, ?)',
+				array($id, $catid));
 
 		if(ConfigHelper::checkConfig('phpui.newticket_notify'))
 		{
@@ -219,13 +219,14 @@ function module_main()
 			$emails = array();
 			$phones = array();
 			if (!empty($info['contacts']))
-				foreach ($info['contacts'] as $contact) {
-					$contact = $contact['contact'] . (strlen($contact['name']) ? ' (' . $contact['name'] . ')' : '');
-					if ($contact['type'] & (CONTACT_EMAIL|CONTACT_INVOICES|CONTACT_NOTIFICATIONS) > 0)
-						$emails[] = $contact;
-					else
-						$phones[] = $contact;
-				}
+				foreach ($info['contacts'] as $contact)
+					if ($contact['type'] & CONTACT_NOTIFICATIONS) {
+						$contact = $contact['contact'] . (strlen($contact['name']) ? ' (' . $contact['name'] . ')' : '');
+						if ($contact['type'] & CONTACT_EMAIL)
+							$emails[] = $contact;
+						else
+							$phones[] = $contact;
+					}
 
 			if (ConfigHelper::checkConfig('phpui.helpdesk_customerinfo')) {
 				$body .= "\n\n-- \n";
@@ -389,20 +390,21 @@ function module_main()
 
 		if (ConfigHelper::checkConfig('phpui.helpdesk_customerinfo')) {
 			$info = $DB->GetRow('SELECT c.id AS customerid, '.$DB->Concat('UPPER(lastname)',"' '",'c.name').' AS customername,
-				cc.contact AS email, address, zip, city FROM customeraddressview c WHERE c.id = ?', array($SESSION->id));
-				$info['contacts'] = $DB->GetAll('SELECT contact, name, type FROM customercontacts
+				address, zip, city FROM customeraddressview c WHERE c.id = ?', array($SESSION->id));
+			$info['contacts'] = $DB->GetAll('SELECT contact, name, type FROM customercontacts
 					WHERE customerid = ?', array($SESSION->id));
 
 			$emails = array();
 			$phones = array();
 			if (!empty($info['contacts']))
-				foreach ($info['contacts'] as $contact) {
-					$target = $contact['contact'] . (strlen($contact['name']) ? ' (' . $contact['name'] . ')' : '');
-					if ($contact['type'] & CONTACT_EMAIL)
-						$emails[] = $target;
-					else
-						$phones[] = $target;
-				}
+				foreach ($info['contacts'] as $contact)
+					if ($contact['type'] & CONTACT_NOTIFICATIONS) {
+						$target = $contact['contact'] . (strlen($contact['name']) ? ' (' . $contact['name'] . ')' : '');
+						if ($contact['type'] & CONTACT_EMAIL)
+							$emails[] = $target;
+						else
+							$phones[] = $target;
+					}
 
 			$body .= "\n\n-- \n";
 			$body .= trans('Customer:').' '.$info['customername']."\n";
@@ -466,7 +468,8 @@ function module_main()
 	$SMARTY->assign('title', trans('Request No. $a / Queue: $b',
 		sprintf('%06d',$ticket['ticketid']), $ticket['queuename']));
 	
-	if($ticket['customerid'] == $SESSION->id)
+	$queues = explode(';',ConfigHelper::getConfig('userpanel.queues'));
+	if($ticket['customerid'] == $SESSION->id && in_array($ticket['queueid'], $queues))
 	{
 	        $SMARTY->assign('ticket', $ticket);
 	        $SMARTY->display('module:helpdeskview.html');

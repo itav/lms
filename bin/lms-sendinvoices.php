@@ -112,8 +112,14 @@ define('LIB_DIR', $CONFIG['directories']['lib_dir']);
 define('SMARTY_COMPILE_DIR', $CONFIG['directories']['smarty_compile_dir']);
 define('SMARTY_TEMPLATES_DIR', $CONFIG['directories']['smarty_templates_dir']);
 
+define('K_TCPDF_EXTERNAL_CONFIG', true);
+
 // Load autoloader
-require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'autoloader.php');
+$composer_autoload_path = SYS_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (file_exists($composer_autoload_path))
+	require_once $composer_autoload_path;
+else
+	die("Composer autoload not found. Run 'composer install' command from LMS directory and try again. More informations at https://getcomposer.org/" . PHP_EOL);
 
 // Init database
 
@@ -127,9 +133,10 @@ try {
 	die("Fatal error: cannot connect to database!" . PHP_EOL);
 }
 
-$filetype = ConfigHelper::getConfig('invoices.type', '');
+$invoice_filetype = ConfigHelper::getConfig('invoices.type', '');
+$dnote_filetype = ConfigHelper::getConfig('notes.type', '');
 
-if ($filetype != 'pdf') {
+if ($invoice_filetype != 'pdf' || $dnote_filetype != 'pdf') {
 	// Initialize templates engine (must be before locale settings)
 	$SMARTY = new LMSSmarty;
 
@@ -161,7 +168,7 @@ if (ConfigHelper::checkConfig('phpui.logging') && class_exists('SYSLOG'))
 else
 	$SYSLOG = null;
 
-if ($filetype != 'pdf') {
+if ($invoice_filetype != 'pdf' || $dnote_filetype != 'pdf') {
 	// Set some template and layout variables
 
 	$SMARTY->setTemplateDir(null);
@@ -190,13 +197,18 @@ $user = ConfigHelper::getConfig('sendinvoices.smtp_user');
 $pass = ConfigHelper::getConfig('sendinvoices.smtp_pass');
 $auth = ConfigHelper::getConfig('sendinvoices.smtp_auth');
 
-$debug_email = ConfigHelper::getConfig('sendinvoices.debug_email', '');
-$sender_name = ConfigHelper::getConfig('sendinvoices.sender_name', '');
-$sender_email = ConfigHelper::getConfig('sendinvoices.sender_email', '');
+$debug_email = ConfigHelper::getConfig('sendinvoices.debug_email', '', true);
+$sender_name = ConfigHelper::getConfig('sendinvoices.sender_name', '', true);
+$sender_email = ConfigHelper::getConfig('sendinvoices.sender_email', '', true);
 $mail_subject = ConfigHelper::getConfig('sendinvoices.mail_subject', 'Invoice No. %invoice');
 $mail_body = ConfigHelper::getConfig('sendinvoices.mail_body', ConfigHelper::getConfig('mail.sendinvoice_mail_body'));
 $invoice_filename = ConfigHelper::getConfig('sendinvoices.invoice_filename', 'invoice_%docid');
-$notify_email = ConfigHelper::getConfig('sendinvoices.notify_email', '');
+$dnote_filename = ConfigHelper::getConfig('sendinvoices.debitnote_filename', 'dnote_%docid');
+$notify_email = ConfigHelper::getConfig('sendinvoices.notify_email', '', true);
+$reply_email = ConfigHelper::getConfig('sendinvoices.reply_email', '', true);
+$add_message = ConfigHelper::checkConfig('sendinvoices.add_message');
+$dsn_email = ConfigHelper::getConfig('sendinvoices.dsn_email', '', true);
+$mdn_email = ConfigHelper::getConfig('sendinvoices.mdn_email', '', true);
 
 if (empty($sender_email))
 	die("Fatal error: sender_email unset! Can't continue, exiting." . PHP_EOL);
@@ -221,12 +233,20 @@ function localtime2() {
 		return time();
 }
 
-$ftype = 'text/html';
-$fext = 'html';
+if ($invoice_filetype == 'pdf') {
+	$invoice_ftype = 'application/pdf';
+	$invoice_fext = 'pdf';
+} else {
+	$invoice_ftype = 'text/html';
+	$invoice_fext = 'html';
+}
 
-if ($filetype == 'pdf') {
-	$ftype = 'application/pdf';
-	$fext = 'pdf';
+if ($dnote_filetype == 'pdf') {
+	$dnote_ftype = 'application/pdf';
+	$dnote_fext = 'pdf';
+} else {
+	$dnote_ftype = 'text/html';
+	$dnote_fext = 'html';
 }
 
 $timeoffset = date('Z');
@@ -269,31 +289,46 @@ if (array_key_exists('test', $options)) {
 	printf("WARNING! You are using test mode." . PHP_EOL);
 }
 
-$query = "SELECT d.id, d.number, d.cdate, d.name, d.customerid, n.template, m.email
+$query = "SELECT d.id, d.number, d.cdate, d.name, d.customerid, d.type AS doctype, n.template, m.email
 		FROM documents d 
 		LEFT JOIN customers c ON c.id = d.customerid 
 		JOIN (SELECT customerid, " . $DB->GroupConcat('contact') . " AS email
 			FROM customercontacts WHERE (type & ?) = ? GROUP BY customerid) m ON m.customerid = c.id
 		LEFT JOIN numberplans n ON n.id = d.numberplanid 
-		WHERE c.deleted = 0 AND d.type IN (?, ?) AND c.invoicenotice = 1"
+		WHERE c.deleted = 0 AND d.type IN (?, ?, ?) AND c.invoicenotice = 1"
 			. (!empty($invoiceid) ? " AND d.id = " . $invoiceid : " AND d.cdate >= $daystart AND d.cdate <= $dayend")
 			. (!empty($groupnames) ? $customergroups : "")
 		. " ORDER BY d.number";
-$docs = $DB->GetAll($query, array(CONTACT_INVOICES | CONTACT_DISABLED, CONTACT_INVOICES, DOC_INVOICE, DOC_CNOTE));
+$docs = $DB->GetAll($query, array(CONTACT_INVOICES | CONTACT_DISABLED, CONTACT_INVOICES, DOC_INVOICE, DOC_CNOTE, DOC_DNOTE));
 
 if (!empty($docs)) {
-	if ($filetype == 'pdf') {
+	if ($invoice_filetype == 'pdf') {
 		$pdf_type = ConfigHelper::getConfig('invoices.pdf_type', 'tcpdf');
 		$pdf_type = ucwords($pdf_type);
-		$classname = 'LMS' . $pdf_type . 'Invoice';
-	}
-	foreach ($docs as $doc) {
-		if ($filetype == 'pdf')
-			$document = new $classname(trans('Invoices'));
-		else
-			$document = new LMSHtmlInvoice($SMARTY);
+		$invoice_classname = 'LMS' . $pdf_type . 'Invoice';
+	} else
+		$invoice_classname = 'LMSHtmlInvoice';
 
-		$invoice = $LMS->GetInvoiceContent($doc['id']);
+	if ($dnote_filetype == 'pdf')
+		$dnote_classname = 'LMSTcpdfDebitNote';
+	else
+		$dnote_classname = 'LMSHtmlDebitNote';
+
+	foreach ($docs as $doc) {
+		if ($doc['doctype'] == DOC_DNOTE) {
+			if ($dnote_filetype == 'pdf')
+				$document = new $dnote_classname(trans('Notes'));
+			else
+				$document = new $dnote_classname($SMARTY);
+			$invoice = $LMS->GetNoteContent($doc['id']);
+		} else {
+			if ($invoice_filetype == 'pdf')
+				$document = new $invoice_classname(trans('Invoices'));
+			else
+				$document = new $invoice_classname($SMARTY);
+			$invoice = $LMS->GetInvoiceContent($doc['id']);
+		}
+
 		$invoice['type'] = trans('ORIGINAL');
 		$document->Draw($invoice);
 		$res = $document->WriteToString();
@@ -312,7 +347,7 @@ if (!empty($docs)) {
 		$body = preg_replace('/%today/', $year ."-". $month ."-". $day, $body);
 		$body = str_replace('\n', "\n", $body);
 		$subject = preg_replace('/%invoice/', $invoice_number, $subject);
-		$filename = preg_replace('/%docid/', $doc['id'], $invoice_filename);
+		$filename = preg_replace('/%docid/', $doc['id'], $doc['doctype'] == DOC_DNOTE ? $dnote_filename : $invoice_filename);
 		$filename = str_replace('%number', $invoice_number, $filename);
 		$filename = preg_replace('/[^[:alnum:]_\.]/i', '_', $filename);
 		$doc['name'] = '"' . $doc['name'] . '"';
@@ -327,12 +362,23 @@ if (!empty($docs)) {
 		$mailto_qp_encoded = implode(', ', $mailto_qp_encoded);
 
 		if (!$quiet || $test)
-			printf("Invoice No. $invoice_number for $mailto" . PHP_EOL);
+			switch ($doc['doctype']) {
+				case DOC_DNOTE:
+					printf("Debit Note No. $invoice_number for $mailto" . PHP_EOL);
+					break;
+				case DOC_CNOTE:
+					printf("Credit Note No. $invoice_number for $mailto" . PHP_EOL);
+					break;
+				case DOC_INVOICE:
+					printf("Invoice No. $invoice_number for $mailto" . PHP_EOL);
+					break;
+			}
 
 		if (!$test) {
+			$files = array();
 			$files[] = array(
-				'content_type' => $ftype,
-				'filename' => $filename . '.' . $fext,
+				'content_type' => $doc['doctype'] == DOC_DNOTE ? $dnote_ftype : $invoice_ftype,
+				'filename' => $filename . '.' . ($doc['doctype'] == DOC_DNOTE ? $dnote_fext : $invoice_fext),
 				'data' => $res
 			);
 
@@ -344,15 +390,59 @@ if (!empty($docs)) {
 				);
 			}
 
-			$headers = array('From' => $from, 'To' => $mailto_qp_encoded,
-				'Subject' => $subject);
+			$headers = array(
+				'From' => empty($dsn_email) ? $from : $dsn_email,
+				'To' => $mailto_qp_encoded,
+				'Subject' => $subject,
+				'Reply-To' => empty($reply_email) ? $sender_email : $reply_email,
+			);
+
+			if (!empty($mdn_email)) {
+				$headers['Return-Receipt-To'] = $mdn_email;
+				$headers['Disposition-Notification-To'] = $mdn_email;
+			}
+
 			if (!empty($notify_email))
 				$headers['Cc'] = $notify_email;
-			$res = $LMS->SendMail($custemail . ',' . $notify_email, $headers, $body,
-				$files, $host, $port, $user, $pass, $auth);
 
-			if (is_string($res))
-				fprintf(STDERR, "Error sending mail: $res" . PHP_EOL);
+			if ($add_message) {
+				$DB->Execute('INSERT INTO messages (subject, body, cdate, type)
+					VALUES (?, ?, ?NOW?, ?)',
+					array($subject, $body, MSG_MAIL));
+				$msgid = $DB->GetLastInsertID('messages');
+				foreach (explode(',', $custemail) as $email) {
+					$DB->Execute('INSERT INTO messageitems (messageid, customerid, destination, lastdate, status)
+						VALUES (?, ?, ?, ?NOW?, ?)',
+						array($msgid, $doc['customerid'], $email, MSG_NEW));
+					$msgitemid = $DB->GetLastInsertID('messageitems');
+					if (!isset($msgitems[$doc['customerid']]))
+						$msgitems[$doc['customerid']] = array();
+					$msgitems[$doc['customerid']][$email] = $msgitemid;
+				}
+			}
+
+			foreach (explode(',', $custemail) as $email) {
+				if ($add_message && (!empty($dsn_email) || !empty($mdn_email))) {
+					if (!empty($dsn_email))
+						$headers['Delivery-Status-Notification-To'] = true;
+					$headers['X-LMS-Message-Item-Id'] = $msgitems[$doc['customerid']][$email];
+				}
+
+				$res = $LMS->SendMail($email . ',' . $notify_email, $headers, $body,
+					$files, $host, $port, $user, $pass, $auth);
+
+				if (is_string($res)) {
+					fprintf(STDERR, "Error sending mail: $res" . PHP_EOL);
+					$status = MSG_ERROR;
+				} else {
+					$status = MSG_SENT;
+					$res = NULL;
+				}
+
+				if ($add_message)
+					$DB->Execute('UPDATE messageitems SET status = ?, error = ?
+						WHERE id = ?', array($status, $res, $msgitems[$doc['customerid']][$email]));
+			}
 		}
 	}
 }

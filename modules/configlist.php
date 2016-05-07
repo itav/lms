@@ -54,7 +54,19 @@ function GetConfigList($order='var,asc', $section='', $search='')
 		{
 			case 'phpui':
 				switch($item['var'])
-				{
+				{	
+				case 'autosuggest_max_length':
+					$config[$idx]['description'] = trans('Max length of auto suggest proposal, further characters will be dotted.');
+				break;
+
+				case 'default_autosuggest_placement':
+					$config[$idx]['description'] = trans('Default placement of suggestion window (left/right/top/bottom)');
+				break;
+
+				case 'allow_from2':
+					$config[$idx]['description'] = trans('List of networks and IP addresses, with access to LMS. If empty, every IP address has access to LMS. When you write list of addresses or address pools here, LMS will dismiss every unwanted user with HTTP 403 error.');
+				break;
+
 				case 'allow_from':
 					$config[$idx]['description'] = trans('List of networks and IP addresses, with access to LMS. If empty, every IP address has access to LMS. When you write list of addresses or address pools here, LMS will dismiss every unwanted user with HTTP 403 error.');
 				break;
@@ -297,10 +309,35 @@ function GetConfigList($order='var,asc', $section='', $search='')
 					$config[$idx]['description'] = trans('Automatically adjusts the size of the selection list to the number of users when set to 0.');
 				break;
 
+				case 'ping_type':
+					$config[$idx]['description'] = trans('Default ping type. You can use "1" for ping or "2" for arping. Default: 1.');
+				break;
+				
+                                case 'default_teryt_city':
+					$config[$idx]['description'] = trans('Default City in TERYT. Set city id in TERYT.');
+				break;
+
 				default:
 					$config[$idx]['description'] = trans('Unknown option. No description.');
 				break;
 			} //end: var
+			break;
+
+			case 'payments':
+				switch($item['var'])
+				{
+					case 'date_format':
+						$config[$idx]['description'] = trans('Define date format for variable: %period, %aligned_period, %current_month used in payments.comment and payments.settlement_comment');
+					break;
+
+					case 'default_unit_name':
+						$config[$idx]['description'] = trans('Unit name on invoice, default: "pcs."');
+					break;
+
+					default:
+						$config[$idx]['description'] = trans('Unknown option. No description.');
+					break;
+				} //end: var
 			break;
 
 			case 'finances':

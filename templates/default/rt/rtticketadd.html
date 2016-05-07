@@ -82,7 +82,7 @@
 			{trans("Categories:")}
 		</TD>
 		<TD style="width: 99%;" class="nobr">
-			<TABLE width="100%" cellpadding="1">
+			<TABLE width="100%" cellpadding="1" {tip trigger="categories"}>
 				{foreach from=$categories item=category}
 				<TR>
 					<TD style="width: 1%;" class="text-center=">
@@ -146,7 +146,7 @@
 	</TR>
 	<TR>
 		<TD style="width: 100%;" class="buttons" colspan="2">
-			<A href="javascript: document.ticket.submit();" accesskey="s">{trans("Submit")} <IMG src="img/save.gif" alt=""></A>
+			<A href="javascript:document.ticket.submit();" accesskey="s">{trans("Submit")} <IMG src="img/save.gif" alt=""></A>
 			<A href="?m={if $queue}rtqueueview&amp;id={$queue}{else}rtqueuelist{/if}">{trans("Cancel")} <IMG src="img/cancel.gif" alt=""></A>
 		</TD>
 	</TR>

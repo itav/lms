@@ -58,7 +58,12 @@ define('BACKUP_DIR', $CONFIG['directories']['backup_dir']);
 define('MODULES_DIR', $CONFIG['directories']['modules_dir']);
 
 // Load autloader
-require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'autoloader.php');
+$composer_autoload_path = SYS_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (file_exists($composer_autoload_path)) {
+    require_once $composer_autoload_path;
+} else {
+    die("Composer autoload not found. Run 'composer install' command from LMS directory and try again. More informations at https://getcomposer.org/");
+}
 
 // Init database
 
@@ -100,7 +105,13 @@ function mt940Parser($file){
 			$dwukropek=stripos($line,':');
 			if ( ($dwukropek==0)&&($dwukropek!==false) ){
 				$pole=preg_split('/:/',$line);
-				$wplaty_parser[$i][$pole[1]]=trim($pole[2]);
+                                if (isset($pole[4])){
+                                        $wplaty_parser[$i][$pole[1]]=trim($pole[2]).':'.trim($pole[3]).':'.trim($pole[4]);
+                                }elseif(isset($pole[3])){
+                                        $wplaty_parser[$i][$pole[1]]=trim($pole[2]).':'.trim($pole[3]);
+                                }else{
+					$wplaty_parser[$i][$pole[1]]=trim($pole[2]);
+                                }
 				switch ($pole[1]) {
    				case '61':
    					$wplaty_parser[$i]['value']=str_replace(",", ".", trim(substr($pole[2],11,strpos($pole[2],'NOTREF')-11)));
