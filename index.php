@@ -191,7 +191,7 @@ if (!empty($custom_templates_dir) && file_exists(SMARTY_TEMPLATES_DIR . '/' . $c
 }
 $SMARTY->AddTemplateDir(
         array(
-            MODULES_DIR . '/optomedia',
+            MODULES_DIR . '/Optomedia',
             SMARTY_TEMPLATES_DIR . '/default',
             SMARTY_TEMPLATES_DIR,
         )

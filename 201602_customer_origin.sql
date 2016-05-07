@@ -22,9 +22,9 @@ CREATE TABLE `customer_has_origin` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
-INSERT INTO `optomedia`.`origin` (`name`) VALUES ('Google');
-INSERT INTO `optomedia`.`origin` (`name`) VALUES ('Radio');
-INSERT INTO `optomedia`.`origin` (`name`) VALUES ('TV');
+INSERT INTO `origin` (`name`) VALUES ('Google');
+INSERT INTO `origin` (`name`) VALUES ('Radio');
+INSERT INTO `origin` (`name`) VALUES ('TV');
 
 ALTER TABLE `origin` 
 ADD COLUMN `id_status` TINYINT NOT NULL AFTER `description`;
