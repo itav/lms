@@ -48,7 +48,7 @@ class GPON
 		include(LIB_DIR.'/gpon/GPON_SNMP.class.php');
 
 		$options = array();
-		//$this->snmp=new GPON_SNMP($options, $CONFIG,$this);
+		$this->snmp=new GPON_SNMP($options, $CONFIG,$this);
 	}
 	function FlatArrayFromDB($arraydata,$keyname,$valuename)
 	{

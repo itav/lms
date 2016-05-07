@@ -11,11 +11,11 @@ class GPON_SNMP
 		$this->CONFIG = &$CONFIG;
 		$this->GPON = &$GPON;
 		$this->set_options($options);
-		@snmp_read_mib('sle-gpon-mib.mib');
-		@snmp_read_mib('snmpv2-mib.mib');
-		@snmp_read_mib('DISMAN-EVENT-MIB.mib');
-		@snmp_read_mib('sle-device-mib.mib');
-		@snmp_read_mib('sle-systemmaintenance-mib.mib');
+//		@snmp_read_mib('sle-gpon-mib.mib');
+//		@snmp_read_mib('snmpv2-mib.mib');
+//		@snmp_read_mib('DISMAN-EVENT-MIB.mib');
+//		@snmp_read_mib('sle-device-mib.mib');
+//		@snmp_read_mib('sle-systemmaintenance-mib.mib');
 	}
 	function set_options($options)
 	{

@@ -139,18 +139,6 @@ $menu = array(
 					'tip' => trans('Allows you to send notices to customers'),
 					'prio' => 60,
 				),
-                                array(
-					'name' => trans('Origins'),
-					'link' =>'?m=optomedia&o=customer_origin_list',
-					'tip' => trans('List of customer origins'),
-					'prio' => 62,
-				),
-                                array(
-					'name' => trans('New origin'),
-					'link' =>'?m=optomedia&o=customer_origin_add',
-					'tip' => trans('Add a customer origin'),
-					'prio' => 64,
-				),
 				array(
 					'name' => trans('Reports'),
 					'link' =>'?m=customerprint',
@@ -859,6 +847,17 @@ if (ConfigHelper::getConfig('phpui.gpon'))
 }
 // -- GPON --
 
+// -- Optomedia origin--
+if (ConfigHelper::getConfig('phpui.optomedia_origin'))
+{
+
+    if(file_exists($CONFIG['directories']['modules_dir'].'/Optomedia/Tools/Origin.menu.php')){
+        
+            require_once($CONFIG['directories']['modules_dir'].'/Optomedia/Tools/Origin.menu.php');
+    }
+
+}
+// -- Optomedia origin --
 /* Example for custom_menu file
 <?php
 	$menu['config']['submenu'][] = array(
