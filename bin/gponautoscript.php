@@ -44,7 +44,7 @@ if($cfg = $DB->GetAll('SELECT section, var, value FROM uiconfig WHERE disabled=0
 	foreach($cfg as $row)
 		$CONFIG[$row['section']][$row['var']] = $row['value'];
 //-----------------------------------------//
-$gpon_onu_autoscript_debug = (isset($CONFIG['phpui']['gpon_onu_autoscript_debug']) ? chkconfig($CONFIG['phpui']['gpon_onu_autoscript_debug']) : 0);
+$gpon_onu_autoscript_debug = (isset($CONFIG['phpui']['gpon_onu_autoscript_debug']) ? ($CONFIG['phpui']['gpon_onu_autoscript_debug']) : 0);
 $output=$GPON1->GetGponAutoScript($gpon_onu_autoscript_debug);
 echo $output;
 

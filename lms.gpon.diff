@@ -7,7 +7,7 @@ diff -Nru lms.org/index.php lms/index.php
  
 +// -- GPON DASAN --
 +// Dodanie klasy GPON'a
-+if (chkconfig($CONFIG['phpui']['gpon']))
++if (($CONFIG['phpui']['gpon']))
 +{
 +       if(!empty($CONFIG['directories']['lib_dir']))
 +       {
@@ -23,7 +23,7 @@ diff -Nru lms.org/index.php lms/index.php
 +
  // Initialize Swekey class
  
- if (chkconfig($CONFIG['phpui']['use_swekey'])) {
+ if (($CONFIG['phpui']['use_swekey'])) {
 diff -Nru lms.org/lib/accesstable.php lms/lib/accesstable.php
 --- lms.org/lib/accesstable.php	2014-05-15 10:50:25.000000000 +0200
 +++ lms/lib/accesstable.php	2014-07-17 14:12:48.001581000 +0200
@@ -106,7 +106,7 @@ diff -Nru lms.org/lib/menu.php lms/lib/menu.php
  	        require_once($CONFIG['phpui']['custom_menu']);
  
 +// -- GPON DASAN --
-+if (chkconfig($CONFIG['phpui']['gpon']))
++if (($CONFIG['phpui']['gpon']))
 +{
 +       if(!empty($CONFIG['directories']['lib_dir']))
 +       {

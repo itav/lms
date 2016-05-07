@@ -23,7 +23,7 @@
  *
  *  $Id: gpononuedit.php,v 1.69 2012/04/18 13:07:47 DK Exp $
  */
-if (!chkconfig(ConfigHelper::getConfig('phpui.gpon')))
+if (!(ConfigHelper::getConfig('phpui.gpon')))
 {
 	$SESSION->redirect('?m=gponoffline');
 }
@@ -278,7 +278,7 @@ case 'formaddip':
 		$error['mac'] = trans('MAC address is required!');
 	elseif(!check_mac($nodeipdata['mac']))
 		$error['mac'] = trans('Incorrect MAC address!');
-	elseif(($nodeipdata['mac']!='00:00:00:00:00:00' || $nodedata['mac']!='00:00:00:00:00:0E') && !chkconfig(ConfigHelper::getConfig('phpui.allow_mac_sharing')))
+	elseif(($nodeipdata['mac']!='00:00:00:00:00:00' || $nodedata['mac']!='00:00:00:00:00:0E') && !(ConfigHelper::getConfig('phpui.allow_mac_sharing')))
 		if($LMS->GetNodeIDByMAC($nodeipdata['mac']))
 			$error['mac'] = trans('MAC address is in use!');
 
@@ -932,7 +932,7 @@ $SMARTY->assign('nastype', $LMS->GetNAStypes());
 switch($edit)
 {
     case 'data':
-	if (chkconfig(ConfigHelper::getConfig('phpui.ewx_support')))
+	if ((ConfigHelper::getConfig('phpui.ewx_support')))
     		$SMARTY->assign('channels', $DB->GetAll('SELECT id, name FROM ewx_channels ORDER BY name'));
 	
 	$SMARTY->display('gpononuedit.html');

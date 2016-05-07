@@ -23,7 +23,7 @@
  *
  *  $Id: gpononulist.php,v 1.26 2012/07/09 13:07:47 DK Exp $
  */
-if (!chkconfig(ConfigHelper::getConfig('phpui.gpon')))
+if (!(ConfigHelper::getConfig('phpui.gpon')))
 {
 	$SESSION->redirect('?m=gponoffline');
 }

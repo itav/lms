@@ -23,7 +23,7 @@
  *
  *  $Id: gpooltedit.php,v 1.69 2012/04/18 13:07:47 DK Exp $
  */
-if (!chkconfig(ConfigHelper::getConfig('phpui.gpon')))
+if (!(ConfigHelper::getConfig('phpui.gpon')))
 {
 	$SESSION->redirect('?m=gponoffline');
 }
@@ -835,7 +835,7 @@ $SMARTY->assign('nastype', $LMS->GetNAStypes());
 switch($edit)
 {
     case 'data':
-	if (chkconfig(ConfigHelper::getConfig('phpui.ewx_support')))
+	if ((ConfigHelper::getConfig('phpui.ewx_support')))
     		$SMARTY->assign('channels', $DB->GetAll('SELECT id, name FROM ewx_channels ORDER BY name'));
 	
 	$SMARTY->display('gponoltedit.html');
