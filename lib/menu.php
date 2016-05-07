@@ -847,7 +847,7 @@ if(!empty($custom_menu))
 	        require_once($custom_menu);
 
 // -- GPON DASAN --
-if (chkconfig(ConfigHelper::getConfig('phpui.gpon')))
+if (ConfigHelper::getConfig('phpui.gpon'))
 {
        if(!empty($CONFIG['directories']['lib_dir']))
        {

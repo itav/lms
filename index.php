@@ -167,9 +167,10 @@ if (ConfigHelper::checkConfig('phpui.use_swekey')) {
 	require_once(LIB_DIR . DIRECTORY_SEPARATOR . 'swekey' . DIRECTORY_SEPARATOR . 'lms_integration.php');
 	$LMS_SWEKEY = new LmsSwekeyIntegration($DB, $AUTH, $LMS);
 	$SMARTY->assign('lms_swekey', $LMS_SWEKEY->GetIntegrationScript($AUTH->id));
+}
 // -- GPON DASAN --
 // Dodanie klasy GPON'a
-if (chkconfig(ConfigHelper::checkConfig('phpui.gpon'))) {
+if (ConfigHelper::checkConfig('phpui.gpon')) {
     if (!empty($CONFIG['directories']['lib_dir'])) {
         if (file_exists($CONFIG['directories']['lib_dir'] . '/gpon/GPON.menu.php') && file_exists($CONFIG['directories']['lib_dir'] . '/gpon/GPON.class.php')) {
             require_once(LIB_DIR . '/gpon/GPON.class.php');
@@ -323,4 +324,3 @@ else {
 
 $SESSION->close();
 $DB->Destroy();
-?>

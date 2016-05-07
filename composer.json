@@ -10,15 +10,7 @@
         "tecnickcom/tcpdf": "^6.2",
         "spipu/html2pdf": "^4.5",
         "components/normalize.css": "^3.0",
-        "smarty/smarty": "3.1.29",
-        "itav/php-form-builder-class": "^3.1",
-        "symfony/form": "^3.0",
-        "symfony/http-foundation": "^3.0",
-        "symfony/twig-bridge": "^3.0",
-        "symfony/security-csrf": "^3.0",
-        "symfony/translation": "^3.0",
-        "symfony/config": "^3.0",
-        "pimple/pimple": "^3.0"        
+        "smarty/smarty": "3.1.29"        
     },
     "require_dev": {
         "phpunit/phpunit": "5.1.*"
