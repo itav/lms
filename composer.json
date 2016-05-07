@@ -16,10 +16,15 @@
         "phpunit/phpunit": "5.1.*"
     },
     "autoload": {
-        "classmap": ["lib/", "plugins/"]
+        "classmap": ["lib/", "plugins/"],
+        "psr-4": {
+            "": "modules/"
+        }
     },
     "autoload-dev": {
-        "psr-4": { "LMS\\Tests\\": "tests/" }
+        "psr-4": { 
+            "LMS\\Tests\\": "tests/"
+        }
     },
     "scripts": {
         "pre-autoload-dump": [ "@repairSMARTY", "@repairHTML2PDF", "@repairTCPDF" ],
@@ -31,10 +36,5 @@
     "require_dev": {
         "phpunit/phpunit": "4.1.*",
         "phpunit/phpunit-skeleton-generator": "*"
-    },
-    "autoload": {
-        "psr-4": {
-            "": "modules/"
-        }
     }
 }
