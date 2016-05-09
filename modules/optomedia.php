@@ -85,12 +85,17 @@ class ViewData
 
 class View
 {
-    public static function renderView($SMARTY)
+    public static function renderView(&$SMARTY)
     {
         $request = Request::createFromGlobals();
         $response = new Response();
         $response->prepare($request);
-        list($content, $templ, $code) = RouteDispatcher::dispatch($request);
+        $viewData = RouteDispatcher::dispatch($request);
+        $content = $viewData['data'];
+        $templ = $viewData['templ'];
+        $code = $viewData['code'];
+        //die(print_r($content, true));
+        
         $SMARTY->assign('content', $content);
         $html = $SMARTY->fetch($templ);
         $response->headers->set('Content-Type', 'text/html');
