@@ -12,14 +12,14 @@ class RouteDispatcher
         $route = $request->get('o');
         if($route){
             $function = DataControl::camelize($route). 'Reaction';
-            if(method_exists(self, $function)){
+            if(method_exists(self::class, $function)){
                 return self::$function($request);
             }
             $parts = explode('_', $route);
             if(count($parts) != 3 ){
                return self::notFoundReaction(); 
             }
-            $controllerStr = ucfirst($parts[0]) . ucfirst($parts[1]) . 'Controller';
+            $controllerStr = 'Optomedia\\' . ucfirst($parts[0]) . '\\Controller\\' . ucfirst($parts[0]) . ucfirst($parts[1]) . 'Controller';
             if(!class_exists($controllerStr)){
                 return self::notFoundReaction();
             }
@@ -38,7 +38,7 @@ class RouteDispatcher
     
     static public function notFoundReaction()
     {
-        ViewData::setCode(404);
+        ViewData::setCode(Response::HTTP_NOT_FOUND);
         ViewData::setTempl('404.tpl');
         return ViewData::getViewData();
     }
@@ -59,7 +59,7 @@ class ViewData
 {
     static private $data = '';
     static private $templ = 'app.tpl';
-    static private $code = 200;
+    static private $code = Response::HTTP_OK;
     
     public static function setData($data) {
         self::$data = $data;
@@ -98,6 +98,7 @@ class View
         
         $SMARTY->assign('content', $content);
         $html = $SMARTY->fetch($templ);
+        $response->setStatusCode($code);
         $response->headers->set('Content-Type', 'text/html');
         $response->setContent($html);
         $response->send();        
