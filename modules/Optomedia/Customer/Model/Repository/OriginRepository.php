@@ -48,12 +48,12 @@ class OriginRepository {
      * @return bool
      */
     public function update(Origin $origin) {
-        
+
         $up = $this->prepareUpdateSubQuery($origin);
         $sub = $up[0];
         $vals = $up[1];
         $sql = "UPDATE origin SET $sub WHERE id = ? ";
-        $ret  = $this->db->Execute($sql, $vals);
+        $ret = $this->db->Execute($sql, $vals);
         return $ret;
     }
 
@@ -69,7 +69,7 @@ class OriginRepository {
             'description' => $origin->getDescription(),
             'id_status' => $origin->getIdStatus(),
         ];
-        return $this->db->Execute($sql, $values);        
+        return $this->db->Execute($sql, $values);
     }
 
     /**
@@ -79,14 +79,14 @@ class OriginRepository {
     private function hydrateOrigin($row) {
         $origin = new Origin();
         if ($row) {
-            $origin->setId((int)$row['id']);
+            $origin->setId((int) $row['id']);
             $origin->setName($row['name']);
             $origin->setDescription($row['description']);
-            $origin->setIdStatus((int)$row['id_status']);
+            $origin->setIdStatus((int) $row['id_status']);
         }
         return $origin;
     }
-    
+
     /**
      * @param Origin $entity
      * @return string
@@ -96,15 +96,14 @@ class OriginRepository {
 
         $ar = [];
         $vals = [];
-        foreach($values as $k => $v){
+        foreach ($values as $k => $v) {
             $ar[] = " $k = ?";
             $vals[] = $v;
         }
-        if(isset($values['id'])){
+        if (isset($values['id'])) {
             $vals[] = $values['id'];
-        }        
+        }
         return [ \implode(' , ', $ar), $vals];
     }
-    
 
 }

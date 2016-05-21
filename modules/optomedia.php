@@ -16,7 +16,7 @@ class RouteDispatcher
                 return self::$function($request);
             }
             $parts = explode('_', $route);
-            if(count($parts) != 3 ){
+            if(count($parts) < 3 ){
                return self::notFoundReaction(); 
             }
             $controllerStr = 'Optomedia\\' . ucfirst($parts[0]) . '\\Controller\\' . ucfirst($parts[0]) . ucfirst($parts[1]) . 'Controller';
@@ -94,8 +94,6 @@ class View
         $content = $viewData['data'];
         $templ = $viewData['templ'];
         $code = $viewData['code'];
-        //die(print_r($content, true));
-        
         $SMARTY->assign('content', $content);
         $html = $SMARTY->fetch($templ);
         $response->setStatusCode($code);

@@ -24,7 +24,7 @@ class Origin
     private $description;
     /**
      *
-     * @var string
+     * @var int
      */    
     private $idStatus = 1;    
     
